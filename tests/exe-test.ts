@@ -54,7 +54,7 @@ try {
   // observe inventory after each action, and recover from one deliberate shortage.
   let seed=137;
   function next(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;}
-  const order=[0,1,2].sort(()=>0); // Fisher-Yates below, no engine RNG.
+  const order=[0,1,2]; // Fisher-Yates below, no engine RNG.
   for(let i=2;i>0;i--){const j=next()%(i+1);[order[i],order[j]]=[order[j],order[i]];}
   transcript.push({exploration:{seed:137,goal:'complete all requests',constraints:'ordinary UI; no day advancement; sell and recover; max 3 quests',order}});
   await click('start');await click('talk');await click(next()%2?'talk_reward':'talk_supplies');await click('back');

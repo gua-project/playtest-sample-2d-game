@@ -3,7 +3,9 @@ $ErrorActionPreference='Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 New-Item -ItemType Directory -Force output | Out-Null
 $steps=@(
-  @{Name='import'; Args=@('--headless','--editor','--import','--quit')},
+  # Immediate --import --quit crashes on the first GDExtension scan in Godot 4.7.
+  # Let the headless editor finish several frames; still require a zero exit.
+  @{Name='import'; Args=@('--headless','--editor','--quit-after','180','--max-fps','60')},
   @{Name='model'; Args=@('--headless','--script','tests/model_test.gd')},
   @{Name='export'; Args=@('--headless','--export-release','"Windows Desktop"','output/guild.exe')}
 )

@@ -24,4 +24,14 @@
 
 実行時に初回 bug 試験が旧残存プロセスの desk に接続したため `missing start on desk` で失敗した。無効な実行として扱い、担当EXEのPID確認・終了後に新規プロセスで再実行。各runの初期bugs一致をassertする修正を加えた。
 
-未完了条件は main の base commit 不在による PR 作成、GUI調整待ち、画像・人間入力、プロセス跨ぎ再開、境界の実EXE、探索試験、独立レビューおよびCI結果。結果の更新時に未実施を成功へ読み替えない。
+最終 headless 実行は [evidence/headless-windows.zip](evidence/headless-windows.zip) に保存。build hash と source commit は [manifest.json](evidence/manifest.json)。モデル26項目、4モード EXE は全通過。I01 は正常herb保持／sort_targetのropeずれを確認済み。headless画像は unavailable。
+
+独立read-onlyレビューを1回実施し、3件の具体的指摘を修正した。
+
+1. 店在庫が補充で20になった後の売却で20超となり正常保存が復元不能: `stock_full` のatomic拒否、S08/P06回帰を追加。
+2. 数量LabelがHBox内で幅1px: autowrap解除と最小幅150、EXE tree boundsの検証を追加。
+3. requestId欠落時の完了確認省略: 正の安全整数receiptを必須とし、完了requestIdとnodeIdを照合。
+
+修正後のモデル26項目と最終再exportした EXE の全4モードで確認した。隔離APPDATAにtemplateがなくexport失敗→古いEXEで数量幅検証が失敗した試行は成功扱いしない。既存templateを担当APPDATAへコピーした上でexport成功と更新を確認し、その後の証拠を保存した。
+
+未完了条件は main の base commit 不在による PR 作成、GUI調整待ち、画像・人間入力、プロセス跨ぎ再開、境界の実EXE、探索試験およびCI結果。結果の更新時に未実施を成功へ読み替えない。

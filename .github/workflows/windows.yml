@@ -5,6 +5,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
       - uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.0
@@ -21,7 +22,13 @@ jobs:
           New-Item -ItemType Directory -Force output | Out-Null
           godot --headless --export-release 'Windows Desktop' output/guild.exe
           exit $LASTEXITCODE
+      - shell: pwsh
+        run: ./scripts/test-exe.ps1
       - uses: actions/upload-artifact@v4
         with:
           name: guild-windows
-          path: output/*
+          path: |
+            output/guild.exe
+            output/*.dll
+            output/evidence-*/
+            output/exe-*.log

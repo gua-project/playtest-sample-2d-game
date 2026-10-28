@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-28T14:23:53.2851522+09:00",
+  "source_commit": "42f232d37f84ee0038fbcd53ccfeb1a3251c50d5",
+  "scenario": "guild-v1",
+  "godot": "4.7.stable.official.5b4e0cb0f",
+  "gua": "1.1.2",
+  "exe_sha256": "0D7BD99F56ACFAD738ACB9A196387CE6ADF10221CCBABD227AB86F1C382F7CD5",
+  "dll_sha256": "D19CEAD091216720C295C6D2E66F15D9ACC848B88948FB45027F119D901B0BDA",
+  "models": 26,
+  "exe_modes": [
+    "normal",
+    "cancel_charge",
+    "double_reward",
+    "sort_target"
+  ],
+  "visual": "unverified, waiting for coordinated GUI slot"
+}

@@ -8,10 +8,7 @@ Godot 4.7 stable と同版 Windows export templates を用意する。PowerShell
 
 ```powershell
 ./scripts/bootstrap.ps1
-godot --headless --editor --import --quit
-godot --headless --script tests/model_test.gd
-New-Item -ItemType Directory -Force output
-godot --headless --export-release 'Windows Desktop' output/guild.exe
+./scripts/build.ps1 -Godot C:/path/to/Godot_v4.7-stable_win64.exe
 ./output/guild.exe
 ```
 

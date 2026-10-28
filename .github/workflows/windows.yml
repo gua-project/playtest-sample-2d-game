@@ -20,6 +20,7 @@ jobs:
       - shell: pwsh
         run: ./scripts/test-exe.ps1
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: guild-windows
           path: |
@@ -27,3 +28,7 @@ jobs:
             output/*.dll
             output/evidence-*/
             output/exe-*.log
+            output/*-error.log
+            output/import.log
+            output/model.log
+            output/export.log

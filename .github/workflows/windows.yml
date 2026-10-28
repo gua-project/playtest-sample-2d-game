@@ -1,0 +1,27 @@
+name: Windows
+on: [push, pull_request]
+jobs:
+  test-export:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: true
+      - shell: pwsh
+        run: ./scripts/bootstrap.ps1
+      - shell: pwsh
+        run: |
+          godot --headless --editor --import --quit
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          godot --headless --script tests/model_test.gd
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force output | Out-Null
+          godot --headless --export-release 'Windows Desktop' output/guild.exe
+          exit $LASTEXITCODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guild-windows
+          path: output/*

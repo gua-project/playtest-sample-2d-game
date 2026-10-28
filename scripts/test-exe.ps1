@@ -1,4 +1,4 @@
-param([string]$Bun='bun',[switch]$Gui,[string[]]$Modes=@('normal','cancel_charge','double_reward','sort_target'))
+param([string]$Bun='bun',[switch]$Gui,[string[]]$Modes=@('normal','restore','cancel_charge','double_reward','sort_target'))
 $ErrorActionPreference='Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $env:APPDATA="$PWD/output/appdata"
@@ -8,8 +8,9 @@ foreach($mode in $Modes) {
   $env:GUILD_TEST_MODE=$mode
   $arguments=@()
   if (!$Gui) { $arguments+='--headless' }
-  $arguments+=@('--',"--save-path=$PWD/output/save-$mode.json")
-  if ($mode -ne 'normal') { $arguments+="--bug=$mode" }
+  $saveMode=if ($mode -eq 'restore') {'normal'} else {$mode}
+  $arguments+=@('--',"--save-path=$PWD/output/save-$saveMode.json")
+  if ($mode -notin @('normal','restore')) { $arguments+="--bug=$mode" }
   $process=Start-Process -FilePath "$PWD/output/guild.exe" -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput "output/exe-$mode.log" -RedirectStandardError "output/exe-$mode-error.log"
   try {
     Start-Sleep -Seconds 2

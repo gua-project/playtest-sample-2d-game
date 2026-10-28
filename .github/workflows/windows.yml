@@ -15,13 +15,8 @@ jobs:
         run: ./scripts/bootstrap.ps1
       - shell: pwsh
         run: |
-          godot --headless --editor --import --quit
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          godot --headless --script tests/model_test.gd
-          if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          New-Item -ItemType Directory -Force output | Out-Null
-          godot --headless --export-release 'Windows Desktop' output/guild.exe
-          exit $LASTEXITCODE
+          $engine=(Get-ChildItem "$env:USERPROFILE/godot" -Recurse -Filter '*win64.exe' | Select-Object -First 1).FullName
+          ./scripts/build.ps1 -Godot $engine
       - shell: pwsh
         run: ./scripts/test-exe.ps1
       - uses: actions/upload-artifact@v4

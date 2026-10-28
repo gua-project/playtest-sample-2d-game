@@ -49,6 +49,15 @@ async function shot(name:string){
 try {
  const version=await request('get_version');
  writeFileSync(`${output}/version.json`,JSON.stringify(version,null,2));
+ if(mode==='restore') {
+  await click('load');
+  const restored=await state();
+  assert.equal((await request('get_ui_tree')).screen,'result');
+  assert.equal(restored.gold,82);
+  assert.ok(restored.quests.every((q:any)=>q.status==='done'));
+  await click('pause');await click('resume');
+  assert.equal((await request('get_ui_tree')).screen,'result');
+ } else {
  await click('start'); await click('talk'); await click('talk_supplies'); await click('back');
  const initial=await state(); assert.equal(initial.day,1);
  assert.deepEqual(initial.bugs,mode==='normal'?[]:[mode]);
@@ -104,6 +113,7 @@ try {
    await click('replay');assert.equal((await state()).gold,60);assert.equal((await state()).day,1);
    await click('next_day');assert.equal((await state()).day,2);
   }
+ }
  }
  writeFileSync(`${output}/final-state.json`,JSON.stringify(await state(),null,2));
  console.log(`PASS EXE ${mode}`);

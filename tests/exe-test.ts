@@ -49,7 +49,44 @@ async function shot(name:string){
 try {
  const version=await request('get_version');
  writeFileSync(`${output}/version.json`,JSON.stringify(version,null,2));
- if(mode==='restore') {
+ if(mode==='explore') {
+  // Bounded goal exploration: choose request order and accept/buy order from seed,
+  // observe inventory after each action, and recover from one deliberate shortage.
+  let seed=137;
+  function next(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed;}
+  const order=[0,1,2].sort(()=>0); // Fisher-Yates below, no engine RNG.
+  for(let i=2;i>0;i--){const j=next()%(i+1);[order[i],order[j]]=[order[j],order[i]];}
+  transcript.push({exploration:{seed:137,goal:'complete all requests',constraints:'ordinary UI; no day advancement; sell and recover; max 3 quests',order}});
+  await click('start');await click('talk');await click(next()%2?'talk_reward':'talk_supplies');await click('back');
+  for(const i of order){
+   const item=['herb','rope','crystal'][i], need=[3,2,2][i];
+   const acceptFirst=Boolean(next()%2);
+   if(acceptFirst){await click('quests');await click('accept_'+i);await click('back');}
+   await click('shop');await click('select_'+item);
+   for(let n=0;n<need;n++){
+    if(next()%2){await click('buy');await click('cancel_trade');}
+    await click('buy');await click('confirm_trade');
+   }
+   const shortage=i===order[0];
+   if(shortage){await click('sell');await click('confirm_trade');}
+   await click('back');await click('quests');
+   if(!acceptFirst)await click('accept_'+i);
+   await click('choose_item');await click('bag_'+item);await click('to_requests');
+   while((await state()).bag[item]>0){await click('deliver_'+i);}
+   if(shortage){
+    const before=await state();await click('deliver_'+i);
+    assert.equal((await state()).quests[i].delivered,before.quests[i].delivered);
+    assert.equal((await state()).quests[i].status,'active');
+    await click('back');await click('shop');await click('select_'+item);await click('buy');await click('confirm_trade');await click('back');
+    await click('inventory');await click('bag_'+item);await click('to_requests');await click('deliver_'+i);
+   }
+   await click('claim_'+i);
+   if((await request('get_ui_tree')).screen!=='result')await click('back');
+  }
+  assert.equal((await request('get_ui_tree')).screen,'result');
+  assert.ok((await state()).quests.every((q:any)=>q.status==='done'));
+  assert.equal((await state()).day,1);
+ } else if(mode==='restore') {
   await click('load');
   const restored=await state();
   assert.equal((await request('get_ui_tree')).screen,'result');

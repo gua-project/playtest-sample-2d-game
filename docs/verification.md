@@ -13,18 +13,18 @@
 | I01 スタック・並べ替え | crystal/herb/rope所持、herb選択しsort | 選択herb維持、bug版ropeへずれ | main inventory / EXE | 実行結果を evidence-sort_target で記録 |
 | N01 期限・順序 | day1受注、3回翌日 | day4期限切れ、在庫補充、金不変 | guild.next_day / model | 通過、期限EXE未検証 |
 | N02 待機 | 新規、入力せず1.2秒 | day1維持、翌日ボタンでday2 | main / EXE | headless通過、長時間未検証 |
-| P01〜P03 保存復元 | 部分納品後・報酬後保存/再開 | 正確な納品数、二重受領なし、完了後結果復元 | restore + save/load / model + EXE | headless通過、プロセス跨ぎ復元未検証 |
+| P01〜P03 保存復元 | 部分納品後・報酬後保存/再開 | 正確な納品数、二重受領なし、完了後結果復元 | restore + save/load / model + EXE | headlessと別プロセス復元通過、82Gと全done保持 |
 | P04 不正保存 | schema不一致 | invalid_save、現状態保持 | guild.restore / model | schema拒否通過、破損型の全網羅なし |
 | F01 一巡・再プレイ | 会話→仕入れ→受注→納品→claim3件 | result、全done、再プレイ60G day1 | main / EXE | headless通過、人間GUI操作未検証 |
 | U01 ポーズ・戻る・背面入力 | 確認画面とpauseへ | confirm/cancelのみ、resumeで復帰 | main / EXE tree | treeで背面操作不存在確認、実キーボード未検証 |
 | U02 言語・画面サイズ | settingsで英語と880 | 読める、はみ出しなし、操作可能 | main / EXE | semantic操作通過、画像と実画面未検証 |
-| X01 探索的プレイ | 目的=全納品、制約=通常操作、速度制限なし | 仕入れ/売却の別順序でも整合 | 未実施 | 固定手順とは別の探索未実施 |
+| X01 探索的プレイ | 目的=全納品、制約=通常操作、日付進行なし、seed137で依頼順・受注/購入順を選ぶ | 仕入れ/売却の別順序でも整合、売却不足拒否後の再入手で全done | tests/exe-test.ts explore / EXE | headless通過、初期条件・探索順・全操作をtranscriptへ保存 |
 
 正常版・個別bug版の EXE は `tests/exe-test.ts` が Gua `get_version`、`get_ui_tree`、`click_node`、`poll_events`、`get_observe_snapshot` を使用する。requestId に対応する完了を要求し、timeout と観測欠落は失敗。専用クリア操作やメモリ書換はない。headless は画面サイズを物理検証できないため、この行は semantic到達のみ。
 
 実行時に初回 bug 試験が旧残存プロセスの desk に接続したため `missing start on desk` で失敗した。無効な実行として扱い、担当EXEのPID確認・終了後に新規プロセスで再実行。各runの初期bugs一致をassertする修正を加えた。
 
-最終 headless 実行は [evidence/headless-windows.zip](evidence/headless-windows.zip) に保存。build hash と source commit は [manifest.json](evidence/manifest.json)。モデル26項目、4モード EXE は全通過。I01 は正常herb保持／sort_targetのropeずれを確認済み。headless画像は unavailable。
+最終 headless 実行は [evidence/headless-windows.zip](evidence/headless-windows.zip) に保存。build hash と source commit は [manifest.json](evidence/manifest.json)。モデル26項目、正常版・別プロセス復元・探索・3不具合版の6ケースは全通過。I01 は正常herb保持／sort_targetのropeずれを確認済み。headless画像は unavailable。
 
 独立read-onlyレビューを1回実施し、3件の具体的指摘を修正した。
 
@@ -34,4 +34,6 @@
 
 修正後のモデル26項目と最終再exportした EXE の全4モードで確認した。隔離APPDATAにtemplateがなくexport失敗→古いEXEで数量幅検証が失敗した試行は成功扱いしない。既存templateを担当APPDATAへコピーした上でexport成功と更新を確認し、その後の証拠を保存した。
 
-未完了条件は main の base commit 不在による PR 作成、GUI調整待ち、画像・人間入力、プロセス跨ぎ再開、境界の実EXE、探索試験およびCI結果。結果の更新時に未実施を成功へ読み替えない。
+クリーンキャッシュで `--headless --editor --import --quit` は Windows 2025/2022 CIとローカルで import 終了時access violation (-1073741819、stderr空) を再現した。既存キャッシュでは再現しなかった。初回を `--headless --editor --quit-after 180 --max-fps 60` に置き換えた新規コピーは終了0。失敗無視や自動成功化はせず、build.ps1 は全stageの終了0・stderr・モデル完了・配布物を必須確認する。GUI型GodotはPowerShell直接呼出しが完了待機しないため明示Processを使用。先行runの緑は受入証拠から除外。
+
+未完了条件は main の base commit 不在による PR 作成、GUI調整待ち、画像・人間入力、境界の実EXE全範囲およびCI最終結果。結果の更新時に未実施を成功へ読み替えない。

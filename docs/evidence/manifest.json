@@ -1,17 +1,20 @@
 {
-  "date": "2026-10-28T14:23:53.2851522+09:00",
-  "source_commit": "42f232d37f84ee0038fbcd53ccfeb1a3251c50d5",
+  "date": "2026-10-28T14:32:28.8538840+09:00",
+  "source_commit": "5d17c505c5f3eef6de8cd2f4423d8c4e7931ef0f",
   "scenario": "guild-v1",
   "godot": "4.7.stable.official.5b4e0cb0f",
   "gua": "1.1.2",
-  "exe_sha256": "0D7BD99F56ACFAD738ACB9A196387CE6ADF10221CCBABD227AB86F1C382F7CD5",
+  "exe_sha256": "9BEC88C89CC7EB0267A193DCCCABB55A20BE87BDA89F1105E67B77D3B6B88884",
   "dll_sha256": "D19CEAD091216720C295C6D2E66F15D9ACC848B88948FB45027F119D901B0BDA",
   "models": 26,
-  "exe_modes": [
+  "exe_cases": [
     "normal",
+    "restore",
+    "explore",
     "cancel_charge",
     "double_reward",
     "sort_target"
   ],
-  "visual": "unverified, waiting for coordinated GUI slot"
+  "exploration_seed": 137,
+  "visual": "unverified; action2d owns GUI slot; waiting for parent"
 }

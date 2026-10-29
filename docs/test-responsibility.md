@@ -1,52 +1,50 @@
-# サンプル回帰と Playtest E2E の境界
+# テストの責務と実行方法
 
-この文書が現在の実行責務を定める。`verification.md` の従来のEXE記録は履歴として保持する。過去のEXEスクリプト成功を Playtest の完成や、新しいsource sceneテストの成功へ読み替えない。
+[テスト契約](verification.md) に初期条件・手順・独立した期待値を定める。[検証記録](evidence/README.md) は対象SHA・日時・ログを持つ過去の実行証拠であり、最新buildの合格判定とは分けて扱う。
 
-## 現在の実行経路
+## 実行経路
 
-- 純粋なゲーム状態の26項目: `tests/model_test.gd`。既存の軽量モデル回帰。
-- 固定UI回帰: `tests/Guild.Regression`。NuGet **Gua.Testing.Godot 1.1.2** の `GodotSceneTestHost.Load("res://main.tscn")` が **Godot 4.7 のsource scene** をheadless起動・接続・破棄する。ゲームはGDScriptのまま。
-- 操作と観測: 公式 **Gua.Testing 1.1.2** の `GuaAssertions.Query(host.Context).ById(...).Click` と `GuaWebSocketContext.GetObserveSnapshotJson`。locatorの相関付き完了確認を利用し、独自WebSocket wire clientは削除。状態JSONは公式Observe envelopeから読み、未観測を成功にしない。Godotホストの操作接続を保持し、Observeは読取ごとに公式Contextをdisposeする短いスコープを使う。
-- CI: `gua-project/gua-tester/godot@v3.1`（tag commit `7bff041a7275363583fdb52a3445ba24601abdab`）。addon tagは `gua-v1.1.2`、NuGetも1.1.2に固定。source回帰jobと配布smoke jobは別。
-- 限定配布smoke: `scripts/smoke-exe.ps1` が1プロセスを起動し、公式 `Gua.Testing` で **バージョンとタイトルの開始/ロードボタン存在だけ**を確認して終了する。プレイ、保存、探索、Scenario、予算、Trace/Recording/Replayを扱わない。
+| 経路 | 対象と入口 | 判定範囲 |
+|---|---|---|
+| モデル回帰 | [model_test.gd](../tests/model_test.gd) | 取引・納品・期限・保存の純粋な状態遷移。モデル用fixtureの直接設定を使う。実UI/EXEの証明にはしない |
+| 固定UI回帰 | [GuildTests.cs](../tests/Guild.Regression/GuildTests.cs) の `SourceRegression` | 正式 `Gua.Testing.Godot` / `Gua.Testing` 1.1.2で **source scene** をheadless起動し、通常ボタン操作を検証 |
+| 限定配布smoke | [smoke-exe.ps1](../scripts/smoke-exe.ps1) とexplicitの `DistributionSmoke` | 配布EXEのversion/titleと起動プロセスへの帰属のみ。プレイ、保存、探索は扱わない |
+| Playtest E2E | [引継ぎメタデータ](playtest-handoff.json) | 配布EXEのlaunch/attach、Scenario、探索、予算、cleanup、Trace/Recording/Replayの統合。サンプル内に汎用runnerを置かない |
 
-ポート8793、テスト保存とAPPDATAは `output/source-regression/` / `output/smoke-*` に分離する。公式ホストへ渡すのはゲームのscene、引数、保存先、環境だけであり、サンプル独自の汎用runnerは作らない。source用の `DistributionSmoke` はexplicitテストなので、公式CI部品の通常test実行では意図的に除外される。別のsmoke jobで明示選択し、その結果を別TRXへ出す。除外を配布検証成功とは数えない。
+ゲームはGDScript。source回帰のプロセス起動・接続・破棄は `GodotSceneTestHost.Load("res://main.tscn")` が担い、操作は公式locatorの相関付き完了で判定する。Observeは公式 `GuaWebSocketContext.GetObserveSnapshotJson` を読取スコープごとにdisposeし、独自wire clientは使わない。
 
-## 全旧テストの移動先
+## ローカル実行
 
-旧実装はcommit `0bbeceff503cfbd6c6e4e75778af7df0a1131791` の `tests/exe-test.ts` / `scripts/test-exe.ps1` で参照できる。証拠ZIPは削除しない。
+Windows x64、Godot 4.7 stable、.NET 10 SDK、Windows export templatesを用意し、repo rootで実行する。
 
-| 旧ケース / ID | 現在のサンプル回帰 | 限定smoke | 将来Playtest E2E（今回未実行） |
-|---|---|---|---|
-| model D01/S01〜08/Q01〜04/N01/P01〜06/B01〜02 | `model_test.gd` 26項目を維持 | 対象外 | モデル成功を実EXEへ転用しない |
-| normal / F01 会話→仕入れ→受注→納品→報酬→結果→再プレイ | `StartCompleteReplayAndSettings`、初期60G、薬草3/ロープ2/水晶2、完了82G | タイトル到達のみ | 同じ独立期待値を配布buildとScenarioへ結ぶ |
-| normal / D01, U01, U02 分岐、取消、ポーズ、言語/サイズ | `SoldSuppliesRecoverAndDeadlinesAdvanceOnlyExplicitly`、`EconomicBoundariesAndCancelledConfirmation`、`StartCompleteReplayAndSettings`。semantic到達のみ | 対象外 | 実画面/実入力/フォーカス/JA-EN/resize。GUI未承認のまま |
-| restore / P01〜03 | `SavePartialAndClaimAcrossSourceProcesses`。部分納品1/3、残2、最初の報酬後68G、再ロード後二重claim不可 | 対象外 | 配布EXEの再起動・build識別付きsave再開、完了82G/全doneも維持 |
-| boundaries / S03〜08, N01〜02 | `EconomicBoundariesAndCancelledConfirmation`、`StockZeroSaleAndReacquisition`、`SoldSuppliesRecoverAndDeadlinesAdvanceOnlyExplicitly`。数量1/9、鞄3種、stack9、残高不足、stock0/20、売却再購入、期限、待機時日付固定 | 対象外 | 同条件の実EXE Scenarioと独立期待値を移管 |
-| cancel_charge / S02 | `CancelBugComparison` 正常と個別bug比較。薬草1の購入取消: 正常60G、bug56G、在庫/品数は変わらない | 不具合版を起動しない | 同初期条件の正常版/個別bug版、結果にIDを結ぶ |
-| double_reward / Q04 | `RewardBugComparison`。薬草3購入後初回報酬68G、二度目は正常68G/bug88G | 対象外 | 同条件の配布版比較。旧全完了のbug102Gも履歴保持 |
-| sort_target / I01 | `SortBugComparison`。薬草/ロープを所持、薬草選択、sortで正常herb/bugrope | 対象外 | 旧3種所持でもherb→rope。納品拒否/誤対象と紐付ける |
-| explore / X01 | ランダム探索をsource回帰へ全量移植しない | 対象外 | **Playtest担当**。seed137、依頼順/受注購入順、購入取消、売却不足拒否→再入手、day1の全done。旧操作履歴を保持するが新E2E未実行 |
-| version/title/get_screenshot | 正式version照合、UI存在はsourceで確認 | version/titleだけ | 実EXEのlaunch/attach、描画、録画、Trace/Replay、cleanup/予算の統合はPlaytest担当 |
+```powershell
+./scripts/bootstrap.ps1
+$env:GODOT_EXECUTABLE='C:/path/to/Godot_v4.7-stable_win64.exe'
+$env:DOTNET_GENERATE_ASPNET_CERTIFICATE='false'
+dotnet restore tests/Guild.Regression/Guild.Regression.csproj
+dotnet test tests/Guild.Regression/Guild.Regression.csproj --filter TestCategory=SourceRegression --logger 'trx;LogFileName=source-regression.trx'
+./scripts/build.ps1 -Godot $env:GODOT_EXECUTABLE
+./scripts/smoke-exe.ps1
+```
 
-旧証拠: `docs/evidence/headless-windows.zip`（normal/restore/explore/各bug、manifestは当時のEXE SHA）、`docs/evidence/boundaries-windows.zip`（境界の実EXE操作/Observe）。旧CI run `40794669575` は7ケース成功の履歴であり、Playtest E2Eではない。現行TRXとsourceのstate/diagnosticsは各CI artifactへ保存する。
+`build.ps1` はモデル回帰とrelease exportを含む。モデルだけを実行する場合は `Godot --headless --path . --script tests/model_test.gd` を使う。`Godot` は利用環境の実行ファイルのパスに置き換える。
 
-## Playtestへの接続情報
+port8793を他プロセスと共有せず、同一PCではこれらのテストを同時実行しない。sourceのAPPDATA/saveは `output/source-regression/<test-id>-<unique-id>/`、配布smokeは `output/smoke-*` に分離する。sourceの保存復元は、同じテストのsaveだけを引き継いで別のsourceプロセスを開く。配布EXEの再起動E2Eとは区別する。
 
-`playtest-handoff.json` は**引継ぎメタデータ**であり、Playtestの実行可能Scenario形式を装わない。Scenario作成・バージョン・budget・attach・recording・trace・replay・cleanupの実装はPlaytest側で行う。
+通常の `dotnet test` では配布smokeはexplicit指定で除外される。配布物をビルド後、`smoke-exe.ps1` が明示選択して実行する。除外を配布検証成功には数えない。
 
-1. Build: Windows x64 `guild.exe` + addon DLL。受入時に実際のEXE SHA256、commit、Gua version/buildIdを採取し、旧hashを新buildへ流用しない。
-2. Scenario: `guild-v1` はゲーム仕様版。Playtest Scenario ID/revisionは未割当。探索seed137はテスト側、ゲーム乱数はなし。
-3. Environment: Windows、Godot4.7、Gua1.1.2、専用port8793、専用save/APPDATA。GUI承認/入力/実画面は未検証。
-4. Independent expectations: 初期day1/60G/空bag、3依頼のneed3/2/2、報酬20/24/30、期限3/5/7、通常完了82G。観測値から期待値を自己生成しない。
-5. Result: 旧run、現source regression、限定smoke、未実行Playtest E2Eを別々に報告する。未割当Scenarioや未取得Trace/Replayを成功にしない。
+## CIと証拠
 
-## 今回の検証範囲
+[Windows workflow](../.github/workflows/windows.yml) の `source-regression` は公式 `gua-project/gua-tester/godot@v3.1`、Godot4.7、addon tag `gua-v1.1.2` を使う。NuGetも1.1.2に固定する。`distribution-smoke` は別jobでビルドと限定smokeを行う。
 
-公式ホストと第二のObserve用Contextを常駐させた初期構成では、`shop` / `buy` / `cancel_trade` の完了待ちが1秒・5秒ともtimeoutとなった。10ms/100ms polling、次frame待ち、両Contextの操作を比較し、失敗TRXとpending-requests/operations診断を保存した。第二接続なしのホスト単独最小navigationと限定EXE smokeは成功し、Observeを公式APIの読取スコープに限定した比較2件も成功した。これは同一環境での切り分け結果であり、Gua側の一般的な複数接続可否や根本原因を断定しない。サンプルから依存ライブラリを改変しない。
+判定はTRXの実行件数とassert、各stageの終了コード、エラーログ、配布物の存在を使う。sourceは12件、限定smokeは1件の実行・合格を要求する。これはsuiteの構成に対する条件であり、特定日時の成功報告ではない。
 
-`OfficialHostOnlyNavigation` はその最小経路を回帰として残す。ゲーム側はcallback中にControlを再構築するため、各clickの公式相関完了後に公式 `WaitUntil` で次のUI frame公開も確認する。明示5秒budgetはテストの待機上限でありPlaytestの探索予算ではない。未完了、タイムアウト、欠落Observeは失敗にする。
+sourceの `version.json`、`final-ui.json`、`last-observe.json` と失敗診断は `output/source-regression/`、TRXはテストのresultsディレクトリへ保存する。`last-observe.json` は最後に実際にassertした観測で、そのframe metadataを保持し、teardown時の新規観測とは呼ばない。smokeはTRXと `output/smoke-process.json` に起動PID、bridge所有PID、EXE SHA256を保存する。CI artifactは `guild-source-regression` / `guild-windows`。
 
-独立レビューは、初回ゲーム実装1回を保持し、今回の移行差分 `0bbecef..2ec5573` へ別枠1回を実施した。[レビュー結果](migration-review.md) のP2検出漏れ2件を修正し、担当が再検証した。修正や追加smoke照合を別の独立再監査済みとは主張しない。
+## 設計上の理由と制限
 
-移行時点 `2ec5573` のローカル実行は **モデル26項目、source12項目、限定smoke1項目が成功**。source通常実行ではexplicitの配布smokeを実行しない。smokeは別実行でTRXのexecuted=1/passed=1を確認した。初期失敗・比較・最終成功のTRXは [source-migration.zip](evidence/source-migration.zip)、API版とファイルhashは [source-migration-manifest.json](evidence/source-migration-manifest.json)。最終sourceでは追加の未assert観測を「final」として取得せず、最後にassertしたObserve envelopeを `last-observe.json` として元のframe metadataごと保存する。GUIとPlaytest E2Eは依然未実行。
+- ゲームはcallbackでControlを再構築する。clickの相関完了後、公式 `WaitUntil` で次のUI frame公開も待ってから次の操作を選ぶ。5秒の操作timeoutは固定回帰の待機上限であり、Playtestの探索予算ではない。
+- 複数接続を常駐させた構成で完了timeoutの再現記録があり、**根本原因は未確定**。短い公式Observe読取スコープを使う構成を、一般的な複数接続問題の修正や保証とは扱わない。詳細は[API比較の記録](evidence/test-responsibility.md)を参照。
+- Godotの初回import直後の終了でaccess violationの再現記録がある。`build.ps1` は180フレーム・最大60fpsの初期化と明示的なプロセス終了待ちを使い、終了コードとstderrを確認する。この実行手順は原因修正を意味しない。
+- GUI画面、キーボード/マウス、実画面JA/EN/resizeは未検証。headlessのsemantic到達やbounds確認で代替しない。音は未実装、他ハードウェア互換性やオンライン同期も対象外。
+- Playtest Scenario ID/revision、実行budget、Trace/Recording/Replayは未実行・未割当。実行時のbuild hash、commit、環境、独立期待値を結び、過去のsource/smoke/EXE記録を新E2Eの成功へ転用しない。

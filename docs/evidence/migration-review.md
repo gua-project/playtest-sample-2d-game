@@ -1,5 +1,7 @@
 # テスト責務移行の独立レビュー
 
+> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/migration-review.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../verification.md) と [実行責務](../test-responsibility.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
+
 | 枠 | 回数 | 対象 |
 |---|---:|---|
 | 初回ゲーム実装レビュー | 1回（既存・保持） | ゲーム実装、初期テスト、当時の実EXE証拠。既存3指摘の修正履歴は verification.md |
@@ -23,4 +25,4 @@
 - レビューで残余リスクに挙がった固定ポートsmokeの対向identityについて、起動したEXEがport8793の唯一のLISTEN所有PIDであることを、EXEが存命のうちに照合する検査を追加した。version/titleだけの古い別プロセスへ接続した結果を、このbuildの成功にしない。smokeにシナリオや探索・Recording等は追加しない。
 - Playtest Scenario/revision/budget/Trace/Replayは未実行であり、sourceや限定smokeの成功で代替しない。
 
-修正後のローカルsource回帰12件、限定smoke1件が成功した。[修正証拠ZIP](evidence/migration-review-fixes.zip) にTRX、起動PID/bridge所有PID/EXE hash、修正ソースhashを保存した。ローカルsmokeでは起動PIDとbridge PIDがともに41512で一致した。2ec5573時点の移行証拠は上書きしていない。最新commitのCIはPRへ記録する。
+修正後のローカルsource回帰12件、限定smoke1件が成功した。[修正証拠ZIP](migration-review-fixes.zip) にTRX、起動PID/bridge所有PID/EXE hash、修正ソースhashを保存した。ローカルsmokeでは起動PIDとbridge PIDがともに41512で一致した。2ec5573時点の移行証拠は上書きしていない。最新commitのCIはPRへ記録する。

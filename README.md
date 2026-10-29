@@ -12,7 +12,7 @@ Godot 4.7 stable と同版 Windows export templates を用意する。PowerShell
 ./output/guild.exe
 ```
 
-`bootstrap.ps1` は正式 release `gua-v1.1.2` の addon ZIP の SHA256 `19f89058ca60e48c74a7327da31c0e011b4c053acfda8e5b8e2e2b1fc90ae8c4` を照合して checkout 内だけに展開する。Git に DLL やビルド成果物は含めない。配布時は `output/guild.exe` と export が配置した DLL を同じ構成で ZIP にまとめる。EXE は PCK 内蔵。署名はない。CI の `guild-windows` artifact も同構成。タグ・Release 公開はこの作業範囲外。
+`bootstrap.ps1` は正式 release `gua-v1.1.2` の addon ZIP の SHA256 `19f89058ca60e48c74a7327da31c0e011b4c053acfda8e5b8e2e2b1fc90ae8c4` を照合して checkout 内だけに展開する。Git に DLL やビルド成果物は含めない。配布時は `output/guild.exe` と export が配置した DLL を同じ構成で ZIP にまとめる。EXE は PCK 内蔵で、署名はない。CI artifact `guild-windows` にEXE/DLLと検証ログを保存する。
 
 ## 遊び方
 
@@ -43,9 +43,9 @@ $env:GUA_BRIDGE_PORT='8793'
 | `double_reward` | 納品後に同じ依頼の報酬を再度受領 | 二度目は unavailable、残高不変 | 報酬を再加算 |
 | `sort_target` | 2種類以上所持し品を選択、並べ替え、納品 | 品目IDを保持 | 次の品目へ選択がずれ、誤納品または品違い拒否 |
 
-## 検証状況
+## テストと判定範囲
 
-[責務・移管対応表](docs/test-responsibility.md) が現行のテスト構成です。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
+[テストの責務・実行方法](docs/test-responsibility.md) と [テスト契約](docs/verification.md) を参照してください。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
 
 ```powershell
 $env:GODOT_EXECUTABLE='C:/path/to/Godot_v4.7-stable_win64.exe'
@@ -55,9 +55,9 @@ dotnet test tests/Guild.Regression/Guild.Regression.csproj --filter TestCategory
 ./scripts/smoke-exe.ps1
 ```
 
-最後のsmokeは既にビルドされたEXEの **公式versionとタイトルのUI存在だけ** を確認し、1プロセスを終了します。source回帰と混同しません。自作JS wire clientと7モードEXE runnerは廃止しました。過去の実行証拠は保存しています。
+最後のsmokeは既にビルドされたEXEの **公式versionとタイトルのUI存在だけ** を確認し、接続先の所有PIDと起動PIDを照合してから1プロセスを終了します。source回帰と配布smokeの結果は分けて扱います。
 
 配布EXEのlaunch/attach、探索、Scenario、予算、cleanup、Trace/Recording/Replayの統合は **Gua Playtest** 側の責務です。サンプルに第二のE2E実行基盤は設けません。[引継ぎ情報](docs/playtest-handoff.json) は未実行のメタデータであり、実行可能Scenario形式や成功結果ではありません。
 
-[過去のテスト記録](docs/verification.md) のEXE成功はPlaytest E2Eの完成を意味しません。正式API移行後の最新成否はPR/CIとTRXを参照してください。モデル/source/smokeの成功は GUI の視覚・入力検証の完了も意味しません。GUI承認完了・正しい対象画面が未確認のため、通常入力・実画面JA/EN/resizeは未検証のままです。音、他ハードウェア、オンライン同期、QA全般の網羅は対象外です。
+[検証記録の索引](docs/evidence/README.md) から、対象SHA・日時・ログと意図的な履歴文書を参照できます。最新の実行結果はPR/CIとTRXで確認してください。モデル/source/smokeの成功は GUI の視覚・入力検証やPlaytest E2Eの完了を意味しません。通常入力・実画面JA/EN/resizeは未検証です。複数接続timeoutの根本原因も未確定で、詳細と現在の実行方式はテスト責務文書に記載しています。音、他ハードウェア、オンライン同期、QA全般の網羅は対象外です。
 

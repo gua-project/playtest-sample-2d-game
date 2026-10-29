@@ -1,49 +1,59 @@
-# issue #1 対応と証拠
+# テスト契約
 
-> 以下は初期実装の検証履歴です。現行の責務・全テスト移管先・正式APIへの変更範囲は [test-responsibility.md](test-responsibility.md) を参照してください。旧EXE 7ケースの成功は、新しいsource回帰やPlaytest E2Eの成功へ転用しません。GUI未検証は維持します。
+[実行方法・責務](test-responsibility.md) と合わせて使う。ここには再現条件と判定基準を置き、実行日時・対象SHA・成否は[検証記録](evidence/README.md)から確認する。GUIとPlaytest E2Eは未検証のままである。
 
-シナリオ `guild-v1`、乱数なし、Godot 4.7.stable、Gua 1.1.2。ビルドは `scripts/bootstrap.ps1` → release export。実行ログ・Observe応答・各クリックと完了応答を `output/evidence-<mode>/transcript.json`、version と final-state を同ディレクトリに保存する。PNG は実際に取得できたときのみ作成する。headless の screenshot unavailable は成功扱いしない。
+## 共通初期条件
 
-| テストID・目的 | 初期条件・操作 | 期待結果・判定根拠 | 実装 / 検証 | 実際の状態 |
-|---|---|---|---|---|
-| D01 会話・分岐・取消 | 新規、会話前受注、各分岐、戻る | 受注拒否、既読と分岐保持、戻るで未操作 | guild.accept / main talk / model + EXE | prerequisite・supplies分岐・戻る通過、rewards分岐 GUI未検証 |
-| S01/S02 取引取消 | 60G、薬草購入確認を取消 | 残高60、在庫12、品0、選択維持 | guild.trade / EXE | normalとcancel_charge差分検出 |
-| S03〜S08 境界 | 鞄3種、9個、残高不足、在庫0/20、数量上下限 | 全拒否がatomic、数量1〜9 | guild.trade / model_test + EXE boundaries | モデルと実EXE通過。直接0/10指定の拒否はモデル、通常ボタンの1/9飽和はEXEで確認 |
-| Q01 部分納品 | 薬草3、受注、1個納品 | delivered1、残2、報酬未発生 | guild.deliver / model + EXE | 通過 |
-| Q02/Q03 売却と再試行 | 部分納品後残2個売却、納品、再購入 | 未所有時拒否、再入手で完了 | guild.trade/deliver / model | 通過、EXE未検証 |
-| Q04 二重報酬 | 同依頼を再claim | 正常版残高不変、bug版+20 | guild.claim / model + EXE | 正常版・double_reward差分検出 |
-| I01 スタック・並べ替え | crystal/herb/rope所持、herb選択しsort | 選択herb維持、bug版ropeへずれ | main inventory / EXE | 実行結果を evidence-sort_target で記録 |
-| N01 期限・順序 | day1受注、3回翌日 | day4期限切れ、在庫補充、金不変 | guild.next_day / model + EXE boundaries | 通過、期限切れ後のclaimで経済状態不変 |
-| N02 待機 | 新規、入力せず1.2秒 | day1維持、翌日ボタンでday2 | main / EXE | headless通過、長時間未検証 |
-| P01〜P03 保存復元 | 部分納品後・報酬後保存/再開 | 正確な納品数、二重受領なし、完了後結果復元 | restore + save/load / model + EXE | headlessと別プロセス復元通過、82Gと全done保持 |
-| P04 不正保存 | schema不一致 | invalid_save、現状態保持 | guild.restore / model | schema拒否通過、破損型の全網羅なし |
-| F01 一巡・再プレイ | 会話→仕入れ→受注→納品→claim3件 | result、全done、再プレイ60G day1 | main / EXE | headless通過、人間GUI操作未検証 |
-| U01 ポーズ・戻る・背面入力 | 確認画面とpauseへ | confirm/cancelのみ、resumeで復帰 | main / EXE tree | treeで背面操作不存在確認、実キーボード未検証 |
-| U02 言語・画面サイズ | settingsで英語と880 | 読める、はみ出しなし、操作可能 | main / EXE | semantic操作通過、画像と実画面未検証 |
-| X01 探索的プレイ | 目的=全納品、制約=通常操作、日付進行なし、seed137で依頼順・受注/購入順を選ぶ | 仕入れ/売却の別順序でも整合、売却不足拒否後の再入手で全done | tests/exe-test.ts explore / EXE | headless通過、初期条件・探索順・全操作をtranscriptへ保存 |
+ゲーム仕様版は `guild-v1`。新規開始はday1、60G、空bag、未読会話、全依頼open/納品0、在庫は薬草12・ロープ8・水晶6・地図5。価格は順に4/8/12/6G、売値は半額。鞄は3種類・各9個まで、店在庫上限は20、数量は1〜9。sourceテストは新規プロセスと専用save/APPDATA、日本語から開始する。
 
-正常版・個別bug版の EXE は `tests/exe-test.ts` が Gua `get_version`、`get_ui_tree`、`click_node`、`poll_events`、`get_observe_snapshot` を使用する。requestId に対応する完了を要求し、timeout と観測欠落は失敗。専用クリア操作やメモリ書換はない。headless は画面サイズを物理検証できないため、この行は semantic到達のみ。
+通常版の有効bug配列は `[]`、個別比較は `[対象ID]` と厳密に一致させる。初期画面と開始/リセット/再プレイ後に照合し、別bugの混入を許さない。テスト用bug引数やモデルfixtureと、通常プレイの操作を区別する。source回帰では専用クリア操作や状態書換で進行を迂回しない。
 
-実行時に初回 bug 試験が旧残存プロセスの desk に接続したため `missing start on desk` で失敗した。無効な実行として扱い、担当EXEのPID確認・終了後に新規プロセスで再実行。各runの初期bugs一致をassertする修正を加えた。
+ゲームに乱数・シード入力はない。初期条件は決定的である。探索seed137はPlaytestへ引き継ぐ探索側の条件であり、ゲームの乱数ではない。
 
-最終 headless 実行は [evidence/headless-windows.zip](evidence/headless-windows.zip) に保存。build hash と source commit は [manifest.json](evidence/manifest.json)。モデル26項目、正常版・別プロセス復元・探索・3不具合版の6ケースは全通過。I01 は正常herb保持／sort_targetのropeずれを確認済み。headless画像は unavailable。
+## 固定source UI回帰
 
-独立read-onlyレビューを1回実施し、3件の具体的指摘を修正した。
+実装は [GuildTests.cs](../tests/Guild.Regression/GuildTests.cs)。操作は通常のUIボタン、判定は公式UI tree/Observeで行う。missing、timeout、未完了、欠落Observeは失敗とする。
 
-1. 店在庫が補充で20になった後の売却で20超となり正常保存が復元不能: `stock_full` のatomic拒否、S08/P06回帰を追加。
-2. 数量LabelがHBox内で幅1px: autowrap解除と最小幅150、EXE tree boundsの検証を追加。
-3. requestId欠落時の完了確認省略: 正の安全整数receiptを必須とし、完了requestIdとnodeIdを照合。
+| テスト / 対応ID | 初期条件・手順 | 独立した期待結果・判定対象 |
+|---|---|---|
+| `StartCompleteReplayAndSettings` / F01, U01, U02 | 通常版。会話→薬草3/ロープ2/水晶2を仕入れ→3件受注→1個ずつ納品/報酬→設定で英語と880→復帰/再プレイ | 仕入れ後8G、全完了でresult/82G、再プレイ60G/day1。英語ボタンのsemantic存在。物理的な画面サイズ・文字欠け・入力は判定しない |
+| `SavePartialAndClaimAcrossSourceProcesses` / P01〜03 | 薬草3を購入して受注、1個納品後に保存しsourceプロセス終了・再開。残り納品と報酬後にも保存・再開して再claim | 部分納品1/3と残2個を復元。初回報酬後68G、再開後の二度目claimでも68G・doneを保持 |
+| `EconomicBoundariesAndCancelledConfirmation` / S01〜08, U01 | 購入確認を取消。水晶6/9購入を試す。3種類所持後の地図購入、薬草9所持後の追加購入、day10で在庫20の店へ売却、拒否後保存/ロード | 確認画面は `confirmation` で背面 `back` が存在しない。取消・各拒否でgold/bag/stock不変。残高不足は `gold_low`、数量は1/9で飽和、数量label幅は150以上。拒否後保存復元でも経済状態を保持 |
+| `SoldSuppliesRecoverAndDeadlinesAdvanceOnlyExplicitly` / D01, Q02〜03, N01〜02 | 通常版。1.2秒待機、会話前受注、会話後に薬草3を仕入れて1個売却、2個納品と不足納品、1個再購入して完了。ロープ受注後に翌日を5回進める | 待機でday1/60G/空bagを保持。会話前はopen。未所持の追加納品は進まずactive、経済状態不変。再入手で復帰。day6のロープはexpiredでclaimによる経済変化なし |
+| `StockZeroSaleAndReacquisition` / S07 | 薬草9購入→3個納品→追加3購入→在庫0で追加購入→1個売却/再購入 | 在庫0時は `stock_low`、gold/bag/stock不変。売却で在庫1、再購入で在庫0・bag薬草9へ戻る |
+| `CancelBugComparison` / S02, B01（2ケース） | 正常/`cancel_charge`を別々に起動。薬草1の購入確認を検証して取消 | 正常60G、bug56G。確認screenとback不在、bug配列の厳密一致も検証する |
+| `RewardBugComparison` / Q04, B02（2ケース） | 正常/`double_reward`。薬草3購入→受注/納品→同じ報酬を2回claim | 正常68G、bug88G。正常の二重受領防止と、個別bugの追加20Gを区別する |
+| `SortBugComparison` / I01（2ケース） | 正常/`sort_target`。薬草1/ロープ1を購入し、薬草を選択して並べ替え | 正常の選択はherbを保持、bugではropeへずれる。個別bug配列と比較する |
+| `OfficialHostOnlyNavigation` / 接続最小経路 | 第二のObserve接続を置かず、公式ホストで開始→店→購入確認→取消 | 通常ボタンの相関完了と、戻り先screenがshopであること |
 
-修正後のモデル26項目と最終再exportした EXE の全4モードで確認した。隔離APPDATAにtemplateがなくexport失敗→古いEXEで数量幅検証が失敗した試行は成功扱いしない。既存templateを担当APPDATAへコピーした上でexport成功と更新を確認し、その後の証拠を保存した。
+## モデル回帰
 
-クリーンキャッシュで `--headless --editor --import --quit` は Windows 2025/2022 CIとローカルで import 終了時access violation (-1073741819、stderr空) を再現した。既存キャッシュでは再現しなかった。初回を `--headless --editor --quit-after 180 --max-fps 60` に置き換えた新規コピーは終了0。失敗無視や自動成功化はせず、build.ps1 は全stageの終了0・stderr・モデル完了・配布物を必須確認する。GUI型GodotはPowerShell直接呼出しが完了待機しないため明示Processを使用。先行runの緑は受入証拠から除外。
+[model_test.gd](../tests/model_test.gd) のfixture設定は純粋なモデルテストに限定する。UI/EXEで同じ状態を注入したという意味ではない。
 
-## 2026-10-29 再開検証
+| ID | 初期条件・操作 | 期待結果 |
+|---|---|---|
+| D01, S01, Q01 | 未読で受注、既読後に薬草3を受注前購入して1個納品 | 未読は `talk_first`、購入後48G、受注と部分納品が成立 |
+| P01/P02, Q02/Q03 | 部分状態をJSON往復し、残2個売却→納品→2個再購入/納品/報酬 | 1/3と残2を復元、未所持納品は拒否、再入手で完了可能 |
+| Q04, S02, F01, P03 | 報酬再claim、購入取消、全3件完了、報酬後restore/reclaim | 正常版は二重報酬なし、取消で残高不変、全done、復元後も重複なし |
+| S03/S04/S05 | モデルfixtureで1000G、薬草9、3種類所持、数量0/10 | stack/種類上限の拒否と経済状態保持、0/10は `invalid_quantity` |
+| S06/S07 | モデルfixtureで金0、または在庫0/100G | `gold_low` / `stock_low`、在庫・残高不変 |
+| S08/P06 | 薬草9購入後に翌日9回、在庫20へ売却/restore | `stock_full` でgold/bag/stock不変、正常保存を復元可能 |
+| N01 | 既読/受注した薬草依頼で翌日3回 | day4でexpired、60G保持。期限判定は日付加算後・在庫補充前 |
+| P04/P05 | 保存version不一致、品数がstring/null/1.5/bool | restoreを拒否。保存破損全般やI/O障害を網羅したとは扱わない |
+| B01/B02 | モデルfixtureで個別bugを有効化し取消、またはdoneの報酬claim | `cancel_charge`は56G、`double_reward`の追加claimは80G。正常期待値60Gとの差を検出 |
 
-再起動後に古いPIDを停止せず、process pathと現在identityを照合し、担当EXEの残存なしを確認してGUIを起動した。正規Computer Useのアプリ選択は返ったが、続く画像取得はギルド画面ではなく `Allow Codex to use guild?` の承認UIだった。承認完了と正しい対象画面を確認できないため通常入力を実施せず停止した。承認UIは操作せず、別の画面取得・入力経路にも切り替えていない。担当プロセスはpath照合で停止し、その後の別読み取りで残存なしを確認、GUI枠を解放した。GUI画面・キーボード/マウス・目視の言語/サイズ検証は未完了。
+## 限定配布smokeの契約
 
-非GUIは `boundaries` ケースを追加し、通常操作だけで会話前受注拒否、購入残高不足、1/9数量飽和、鞄3種、9個スタック、在庫0、売却→再購入、在庫20で売却拒否、拒否後保存ロード、day4期限切れと報酬拒否を実EXE/Guaで確認した。各拒否で残高・品数・在庫が不変なことをassert。操作とObserveの生証拠は [boundaries-windows.zip](evidence/boundaries-windows.zip)。保存状態はゲーム本来の操作で生成し、注入や専用クリアは使っていない。
+`scripts/smoke-exe.ps1` が通常版EXEをheadlessで1つ起動し、公式 `Gua.Testing` でcore/plugin versionが1.1.2、screenがtitle、開始/ロードがvisibleであることを確認する。明示選択した1テストのTRXがexecuted=1/passed=1であることと、port8793の唯一のLISTEN所有PIDが起動したEXEのPIDと一致することを要求する。EXE hashとPIDを存命中に記録し、終了する。別プロセスの成功を対象buildへ帰属させない。
 
-承認された空mainの初期commitは `8a51b044d3268257b25b82c16d027b3715c811fb`、treeは空tree `4b825dc642cb6eb9a060e54bf8d69288fbee4904`。既存の実装履歴を保持し、別PR用ブランチに空mainをmergeして共通祖先を設ける。default設定変更、ゲーム実装のmainマージ、自動マージ、正式Approve投稿、Release公開は行わない。
+このsmokeはプレイ・保存復元・探索・GUI・Scenario・Trace/Recording/Replayを検証しない。
 
-未完了条件は GUI承認と正しい対象画面、画像・人間入力・実画面でのJA/EN/resize。音は仮素材段階で未実装。headlessの成功はこれらの代わりにしない。結果の更新時に未実施を成功へ読み替えない。
+## Playtestへ引き継ぐE2E条件
+
+[playtest-handoff.json](playtest-handoff.json) は引継ぎメタデータであり、実行可能Scenarioや実行結果ではない。Scenario ID/revision、budget、実build SHA256/commitは実行対象を決めて記録する。通常完了の独立期待値は、初期60Gから仕入れ52G・報酬74Gを経た82G、全3依頼done。期限は薬草/ロープ/水晶でday3/5/7、報酬20/24/30、必要数3/2/2。
+
+X01の探索条件はseed137、目的は全3件done、制約は通常操作のみ・日付を進めない・購入取消を挟む・納品予定品の売却不足を確認して再入手すること。依頼順と受注/購入順を探索側で選ぶ。配布版の保存再起動（部分納品後/報酬後/全完了後）、個別bug比較、実画面JA/EN/resize、入力、Trace/Replayの統合はPlaytest側で検証する。いずれも現行の受入完了とは扱わない。
+
+## 判定上の制約
+
+観測値から期待値を自己生成しない。状態・semantic UIで判定できる項目と、画像・物理入力・実機環境を必要とする項目を区別する。GUIは未検証、音は未実装。短時間の待機確認は長時間安定性を保証しない。複数接続timeoutの根本原因は未確定で、source/smokeの成功もPlaytest E2Eや一般的なQA網羅を意味しない。

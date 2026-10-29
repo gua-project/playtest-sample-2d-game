@@ -7,10 +7,14 @@ Godot 4.7 / 正式 Gua 1.1.2 で、会話・仕入れ・売却・依頼受注・
 ## 検証
 
 - モデル26項目が通過。取引atomic性、部分納品、売却後の再入手、期限、報酬重複、保存型検証と在庫20時の売却復元を確認。
-- Windows release EXE → 正式 Gua WebSocket → UI tree / Observe → 通常ボタンの受付から全依頼完了、保存再開、再プレイを確認。正常版と3つの個別不具合を比較し、不具合を期待どおり検出。
+- Windows release EXE → 正式 Gua WebSocket → UI tree / Observe → 通常ボタンの受付から全依頼完了、保存再開、再プレイを確認。正常版と3つの個別不具合を比較し、不具合を期待どおり検出。別プロセス復元・seed137探索・購入/売却/鞄/期限の境界を含む計7ケースを用意。
 - 独立レビュー1回、具体的3指摘（売却在庫とrestore、数量表示幅、action完了確認）を修正し回帰通過。
 - [テスト対応表](verification.md)、[実行証拠](evidence/headless-windows.zip)、[build hash](evidence/manifest.json)。
 
 ## 未完了
 
-GUI画像と人間入力は共有PCの調整待ち。境界の実EXE全範囲は未実施。別プロセス復元とseed137の目的制約付き探索はheadless EXEで通過。CIの最終結果は実行後追記。issue完了・受入完了とは扱わない。空repoのため main/base commit がなく、親によるbase準備が必要。main作成・直接変更・マージ・自動マージ・Release公開は実施していない。
+GUIは正規Computer Useでギルド画面ではなくアプリ承認UIが返り、承認完了を確認できず停止しました。通常入力は未実施で、別経路で迂回していません。画像・人間入力・実画面でのJA/EN/resizeは未検証。担当EXE終了とGUI枠解放を確認済み。音は仮素材段階で未実装です。
+
+Godot 4.7の初回GDExtension import直後に `--import --quit` でaccess violationが再現したため、headless editorを180フレーム動かす初期化に変更。終了0・stderr・26モデル項目完了・EXE/DLL存在を必須にしています。先行CIの誤った緑は証拠から除外済みで、修正後3b314adのCIは成功。PRブランチの最新CIも確認します。
+
+明示承認された空tree初期commitだけをmainに作成しました（8a51b044）。既存実装ブランチを保持し、別PRブランチへ空mainをmergeして共通祖先を設けました。ゲーム実装のmainマージ、自動マージ、default設定変更、正式Approveレビュー投稿、Release公開はしていません。GUI完了条件が残るためDraftを維持し、issue完了・受入完了とは扱いません。

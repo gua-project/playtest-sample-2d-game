@@ -33,7 +33,6 @@ Godot 4.7 stable と同版 Windows export templates を用意する。PowerShell
 ```powershell
 $env:GUA_BRIDGE_PORT='8793'
 ./output/guild.exe -- --bug=cancel_charge --save-path=C:/absolute/path/save.json
-./scripts/test-exe.ps1 -Bun C:/Users/testk/.bun/bin/bun.exe
 ```
 
 `--bug=` は次のIDを個別指定。指定なしが正常版。開始・リセット・再プレイは現在のフラグを引き継ぐ。ロードは保存したフラグを復元し、画面と実行証拠にIDを残す。テスト用の初期条件変更は引数・新規開始／リセットに限定し、通常納品を迂回しない。
@@ -46,5 +45,19 @@ $env:GUA_BRIDGE_PORT='8793'
 
 ## 検証状況
 
-[テスト対応表](docs/verification.md) を参照。モデルと headless EXE の成功は GUI の視覚・入力検証の完了を意味しない。音の評価、他ハードウェア、オンライン同期、QA全般の網羅は対象外。
+[責務・移管対応表](docs/test-responsibility.md) が現行のテスト構成です。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
+
+```powershell
+$env:GODOT_EXECUTABLE='C:/path/to/Godot_v4.7-stable_win64.exe'
+$env:DOTNET_GENERATE_ASPNET_CERTIFICATE='false'
+dotnet restore tests/Guild.Regression/Guild.Regression.csproj
+dotnet test tests/Guild.Regression/Guild.Regression.csproj --filter TestCategory=SourceRegression
+./scripts/smoke-exe.ps1
+```
+
+最後のsmokeは既にビルドされたEXEの **公式versionとタイトルのUI存在だけ** を確認し、1プロセスを終了します。source回帰と混同しません。自作JS wire clientと7モードEXE runnerは廃止しました。過去の実行証拠は保存しています。
+
+配布EXEのlaunch/attach、探索、Scenario、予算、cleanup、Trace/Recording/Replayの統合は **Gua Playtest** 側の責務です。サンプルに第二のE2E実行基盤は設けません。[引継ぎ情報](docs/playtest-handoff.json) は未実行のメタデータであり、実行可能Scenario形式や成功結果ではありません。
+
+[過去のテスト記録](docs/verification.md) のEXE成功はPlaytest E2Eの完成を意味しません。正式API移行後の最新成否はPR/CIとTRXを参照してください。モデル/source/smokeの成功は GUI の視覚・入力検証の完了も意味しません。GUI承認完了・正しい対象画面が未確認のため、通常入力・実画面JA/EN/resizeは未検証のままです。音、他ハードウェア、オンライン同期、QA全般の網羅は対象外です。
 

@@ -1,5 +1,7 @@
 # issue #1 対応と証拠
 
+> 以下は初期実装の検証履歴です。現行の責務・全テスト移管先・正式APIへの変更範囲は [test-responsibility.md](test-responsibility.md) を参照してください。旧EXE 7ケースの成功は、新しいsource回帰やPlaytest E2Eの成功へ転用しません。GUI未検証は維持します。
+
 シナリオ `guild-v1`、乱数なし、Godot 4.7.stable、Gua 1.1.2。ビルドは `scripts/bootstrap.ps1` → release export。実行ログ・Observe応答・各クリックと完了応答を `output/evidence-<mode>/transcript.json`、version と final-state を同ディレクトリに保存する。PNG は実際に取得できたときのみ作成する。headless の screenshot unavailable は成功扱いしない。
 
 | テストID・目的 | 初期条件・操作 | 期待結果・判定根拠 | 実装 / 検証 | 実際の状態 |

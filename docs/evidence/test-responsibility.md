@@ -1,6 +1,6 @@
 # サンプル回帰と Playtest E2E の境界
 
-> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/test-responsibility.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../verification.md) と [実行責務](../test-responsibility.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
+> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/test-responsibility.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../test-matrix.md) と [実行責務](../testing.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
 
 この文書が現在の実行責務を定める。`verification.md` の従来のEXE記録は履歴として保持する。過去のEXEスクリプト成功を Playtest の完成や、新しいsource sceneテストの成功へ読み替えない。
 

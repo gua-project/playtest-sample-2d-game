@@ -1,6 +1,6 @@
 # 検証記録の索引
 
-ここは対象SHA・実行日時・成否・診断・レビュー等の履歴を保持する場所である。[現行テスト契約](../verification.md) と [実行責務](../test-responsibility.md) から分離する。過去の成功、source回帰、限定smokeを、別buildの合格やGUI/Playtest E2Eの完了へ転用しない。
+ここは対象SHA・実行日時・成否・診断・レビュー等の履歴を保持する場所である。[現行テスト契約](../test-matrix.md) と [実行責務](../testing.md) から分離する。過去の成功、source回帰、限定smokeを、別buildの合格やGUI/Playtest E2Eの完了へ転用しない。
 
 ## 実行証拠
 

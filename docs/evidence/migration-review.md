@@ -1,6 +1,6 @@
 # テスト責務移行の独立レビュー
 
-> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/migration-review.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../verification.md) と [実行責務](../test-responsibility.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
+> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/migration-review.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../test-matrix.md) と [実行責務](../testing.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
 
 | 枠 | 回数 | 対象 |
 |---|---:|---|

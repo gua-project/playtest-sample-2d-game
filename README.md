@@ -45,7 +45,7 @@ $env:GUA_BRIDGE_PORT='8793'
 
 ## テストと判定範囲
 
-[テストの責務・実行方法](docs/test-responsibility.md) と [テスト契約](docs/verification.md) を参照してください。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
+[テストの責務・実行方法](docs/testing.md) と [テスト契約](docs/test-matrix.md) を参照してください。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
 
 ```powershell
 $env:GODOT_EXECUTABLE='C:/path/to/Godot_v4.7-stable_win64.exe'
@@ -57,7 +57,7 @@ dotnet test tests/Guild.Regression/Guild.Regression.csproj --filter TestCategory
 
 最後のsmokeは既にビルドされたEXEの **公式versionとタイトルのUI存在だけ** を確認し、接続先の所有PIDと起動PIDを照合してから1プロセスを終了します。source回帰と配布smokeの結果は分けて扱います。
 
-配布EXEのlaunch/attach、探索、Scenario、予算、cleanup、Trace/Recording/Replayの統合は **Gua Playtest** 側の責務です。サンプルに第二のE2E実行基盤は設けません。[引継ぎ情報](docs/playtest-handoff.json) は未実行のメタデータであり、実行可能Scenario形式や成功結果ではありません。
+配布EXEのlaunch/attach、探索、Scenario、予算、cleanup、Trace/Recording/Replayの統合は **Gua Playtest** 側の責務です。サンプルに第二のE2E実行基盤は設けません。接続条件・期待値・未実行範囲は[Playtest引継ぎ](docs/playtest-handoff.md)を参照してください。[引継ぎJSON](docs/playtest-handoff.json)は未実行のメタデータであり、実行可能Scenario形式や成功結果ではありません。
 
 [検証記録の索引](docs/evidence/README.md) から、対象SHA・日時・ログと意図的な履歴文書を参照できます。最新の実行結果はPR/CIとTRXで確認してください。モデル/source/smokeの成功は GUI の視覚・入力検証やPlaytest E2Eの完了を意味しません。通常入力・実画面JA/EN/resizeは未検証です。複数接続timeoutの根本原因も未確定で、詳細と現在の実行方式はテスト責務文書に記載しています。音、他ハードウェア、オンライン同期、QA全般の網羅は対象外です。
 

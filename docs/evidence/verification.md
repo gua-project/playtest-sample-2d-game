@@ -1,8 +1,8 @@
 # issue #1 対応と証拠
 
-> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/verification.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../verification.md) と [実行責務](../test-responsibility.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
+> 検証記録。出典は [0577d04 の原本](https://github.com/gua-project/playtest-sample-2d-game/blob/0577d04b2bd216b85cdf519d9062964a85f5798b/docs/verification.md)。記載の成否・レビュー回数・作業状況はその時点の記録であり、現行契約は [テスト契約](../test-matrix.md) と [実行責務](../testing.md) を参照する。移設に伴うリンク補正以外の履歴は保持している。
 
-> 以下は初期実装の検証履歴です。現行の責務・全テスト移管先・正式APIへの変更範囲は [test-responsibility.md](../test-responsibility.md) を参照してください。旧EXE 7ケースの成功は、新しいsource回帰やPlaytest E2Eの成功へ転用しません。GUI未検証は維持します。
+> 以下は初期実装の検証履歴です。現行の責務・全テスト移管先・正式APIへの変更範囲は [testing.md](../testing.md) を参照してください。旧EXE 7ケースの成功は、新しいsource回帰やPlaytest E2Eの成功へ転用しません。GUI未検証は維持します。
 
 シナリオ `guild-v1`、乱数なし、Godot 4.7.stable、Gua 1.1.2。ビルドは `scripts/bootstrap.ps1` → release export。実行ログ・Observe応答・各クリックと完了応答を `output/evidence-<mode>/transcript.json`、version と final-state を同ディレクトリに保存する。PNG は実際に取得できたときのみ作成する。headless の screenshot unavailable は成功扱いしない。
 

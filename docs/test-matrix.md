@@ -1,6 +1,6 @@
 # テスト契約
 
-[実行方法・責務](test-responsibility.md) と合わせて使う。ここには再現条件と判定基準を置き、実行日時・対象SHA・成否は[検証記録](evidence/README.md)から確認する。GUIとPlaytest E2Eは未検証のままである。
+[実行方法・責務](testing.md) と合わせて使う。ここには再現条件と判定基準を置き、実行日時・対象SHA・成否は[検証記録](evidence/README.md)から確認する。GUIとPlaytest E2Eは未検証のままである。
 
 ## 共通初期条件
 
@@ -8,7 +8,7 @@
 
 通常版の有効bug配列は `[]`、個別比較は `[対象ID]` と厳密に一致させる。初期画面と開始/リセット/再プレイ後に照合し、別bugの混入を許さない。テスト用bug引数やモデルfixtureと、通常プレイの操作を区別する。source回帰では専用クリア操作や状態書換で進行を迂回しない。
 
-ゲームに乱数・シード入力はない。初期条件は決定的である。探索seed137はPlaytestへ引き継ぐ探索側の条件であり、ゲームの乱数ではない。
+ゲームに乱数・シード入力はない。初期条件は決定的である。探索seed137は[Playtest引継ぎ](playtest-handoff.md)の探索側の条件であり、ゲームの乱数ではない。
 
 ## 固定source UI回帰
 
@@ -47,12 +47,6 @@
 `scripts/smoke-exe.ps1` が通常版EXEをheadlessで1つ起動し、公式 `Gua.Testing` でcore/plugin versionが1.1.2、screenがtitle、開始/ロードがvisibleであることを確認する。明示選択した1テストのTRXがexecuted=1/passed=1であることと、port8793の唯一のLISTEN所有PIDが起動したEXEのPIDと一致することを要求する。EXE hashとPIDを存命中に記録し、終了する。別プロセスの成功を対象buildへ帰属させない。
 
 このsmokeはプレイ・保存復元・探索・GUI・Scenario・Trace/Recording/Replayを検証しない。
-
-## Playtestへ引き継ぐE2E条件
-
-[playtest-handoff.json](playtest-handoff.json) は引継ぎメタデータであり、実行可能Scenarioや実行結果ではない。Scenario ID/revision、budget、実build SHA256/commitは実行対象を決めて記録する。通常完了の独立期待値は、初期60Gから仕入れ52G・報酬74Gを経た82G、全3依頼done。期限は薬草/ロープ/水晶でday3/5/7、報酬20/24/30、必要数3/2/2。
-
-X01の探索条件はseed137、目的は全3件done、制約は通常操作のみ・日付を進めない・購入取消を挟む・納品予定品の売却不足を確認して再入手すること。依頼順と受注/購入順を探索側で選ぶ。配布版の保存再起動（部分納品後/報酬後/全完了後）、個別bug比較、実画面JA/EN/resize、入力、Trace/Replayの統合はPlaytest側で検証する。いずれも現行の受入完了とは扱わない。
 
 ## 判定上の制約
 

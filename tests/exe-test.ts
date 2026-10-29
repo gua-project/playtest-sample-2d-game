@@ -49,7 +49,43 @@ async function shot(name:string){
 try {
  const version=await request('get_version');
  writeFileSync(`${output}/version.json`,JSON.stringify(version,null,2));
- if(mode==='explore') {
+ if(mode==='boundaries') {
+  const economy=(s:any)=>({gold:s.gold,bag:s.bag,stock:s.stock});
+  async function unchanged(before:any){assert.deepEqual(economy(await state()),economy(before));}
+  async function quantity(q:number){
+   for(let n=0;n<10;n++)await click('qty_minus');
+   for(let n=1;n<q;n++)await click('qty_plus');
+   const tree=await request('get_ui_tree');
+   assert.ok(tree.nodes.some((n:any)=>n.label===`数量: ${q}`||n.label===`Quantity: ${q}`));
+  }
+  async function trade(sell=false){await click(sell?'sell':'buy');await click('confirm_trade');}
+  async function reset(){await click('back');await click('pause');await click('reset');}
+  await click('start');assert.deepEqual((await state()).bugs,[]);
+  await click('quests');const unaccepted=await state();await click('accept_0');await unchanged(unaccepted);assert.equal((await state()).quests[0].status,'open');await click('back');
+  await click('shop');await click('select_crystal');await quantity(6);
+  let before=await state();await trade();await unchanged(before);assert.equal((await state()).history.at(-1).result,'gold_low');
+  for(let n=0;n<12;n++)await click('qty_plus');
+  assert.ok((await request('get_ui_tree')).nodes.some((n:any)=>n.label==='数量: 9'));
+  before=await state();await trade();await unchanged(before);assert.equal((await state()).history.at(-1).result,'stock_low');
+  await reset();await click('shop');
+  for(const item of ['herb','rope','crystal']){await click('select_'+item);await trade();}
+  await click('select_map');before=await state();await trade();await unchanged(before);assert.equal((await state()).history.at(-1).result,'bag_full');
+  await reset();await click('shop');await quantity(9);await trade();
+  await quantity(1);before=await state();await trade();await unchanged(before);assert.equal((await state()).history.at(-1).result,'bag_full');
+  await click('back');await click('talk');await click('talk_reward');await click('back');await click('quests');await click('accept_0');
+  for(let n=0;n<3;n++)await click('deliver_0');
+  await click('back');await click('shop');await quantity(3);await trade();assert.equal((await state()).stock.herb,0);
+  await quantity(1);before=await state();await trade();await unchanged(before);assert.equal((await state()).history.at(-1).result,'stock_low');
+  await trade(true);assert.equal((await state()).stock.herb,1);await trade();assert.equal((await state()).stock.herb,0);
+  await reset();await click('shop');await quantity(9);await trade();await click('back');
+  for(let n=0;n<9;n++)await click('next_day');
+  await click('shop');before=await state();assert.equal(before.stock.herb,20);await trade(true);await unchanged(before);assert.equal((await state()).history.at(-1).result,'stock_full');
+  await click('back');await click('pause');await click('save');await click('load');assert.deepEqual(economy(await state()),economy(before));
+  await click('pause');await click('reset');await click('talk');await click('talk_supplies');await click('back');await click('quests');await click('accept_0');await click('back');
+  for(let n=0;n<3;n++)await click('next_day');
+  assert.equal((await state()).quests[0].status,'expired');
+  await click('quests');before=await state();await click('claim_0');await unchanged(before);await click('back');
+ } else if(mode==='explore') {
   // Bounded goal exploration: choose request order and accept/buy order from seed,
   // observe inventory after each action, and recover from one deliberate shortage.
   let seed=137;

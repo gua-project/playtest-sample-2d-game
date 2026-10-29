@@ -6,12 +6,12 @@
 |---|---|---|---|---|
 | D01 会話・分岐・取消 | 新規、会話前受注、各分岐、戻る | 受注拒否、既読と分岐保持、戻るで未操作 | guild.accept / main talk / model + EXE | prerequisite・supplies分岐・戻る通過、rewards分岐 GUI未検証 |
 | S01/S02 取引取消 | 60G、薬草購入確認を取消 | 残高60、在庫12、品0、選択維持 | guild.trade / EXE | normalとcancel_charge差分検出 |
-| S03〜S07 境界 | 鞄3種、9個、金0、在庫0、数量0/10 | 全拒否がatomic、数量1〜9 | guild.trade / model_test | 20モデル項目に含み通過、境界EXE未検証 |
+| S03〜S08 境界 | 鞄3種、9個、残高不足、在庫0/20、数量上下限 | 全拒否がatomic、数量1〜9 | guild.trade / model_test + EXE boundaries | モデルと実EXE通過。直接0/10指定の拒否はモデル、通常ボタンの1/9飽和はEXEで確認 |
 | Q01 部分納品 | 薬草3、受注、1個納品 | delivered1、残2、報酬未発生 | guild.deliver / model + EXE | 通過 |
 | Q02/Q03 売却と再試行 | 部分納品後残2個売却、納品、再購入 | 未所有時拒否、再入手で完了 | guild.trade/deliver / model | 通過、EXE未検証 |
 | Q04 二重報酬 | 同依頼を再claim | 正常版残高不変、bug版+20 | guild.claim / model + EXE | 正常版・double_reward差分検出 |
 | I01 スタック・並べ替え | crystal/herb/rope所持、herb選択しsort | 選択herb維持、bug版ropeへずれ | main inventory / EXE | 実行結果を evidence-sort_target で記録 |
-| N01 期限・順序 | day1受注、3回翌日 | day4期限切れ、在庫補充、金不変 | guild.next_day / model | 通過、期限EXE未検証 |
+| N01 期限・順序 | day1受注、3回翌日 | day4期限切れ、在庫補充、金不変 | guild.next_day / model + EXE boundaries | 通過、期限切れ後のclaimで経済状態不変 |
 | N02 待機 | 新規、入力せず1.2秒 | day1維持、翌日ボタンでday2 | main / EXE | headless通過、長時間未検証 |
 | P01〜P03 保存復元 | 部分納品後・報酬後保存/再開 | 正確な納品数、二重受領なし、完了後結果復元 | restore + save/load / model + EXE | headlessと別プロセス復元通過、82Gと全done保持 |
 | P04 不正保存 | schema不一致 | invalid_save、現状態保持 | guild.restore / model | schema拒否通過、破損型の全網羅なし |
@@ -36,4 +36,12 @@
 
 クリーンキャッシュで `--headless --editor --import --quit` は Windows 2025/2022 CIとローカルで import 終了時access violation (-1073741819、stderr空) を再現した。既存キャッシュでは再現しなかった。初回を `--headless --editor --quit-after 180 --max-fps 60` に置き換えた新規コピーは終了0。失敗無視や自動成功化はせず、build.ps1 は全stageの終了0・stderr・モデル完了・配布物を必須確認する。GUI型GodotはPowerShell直接呼出しが完了待機しないため明示Processを使用。先行runの緑は受入証拠から除外。
 
-未完了条件は main の base commit 不在による PR 作成、GUI調整待ち、画像・人間入力、境界の実EXE全範囲およびCI最終結果。結果の更新時に未実施を成功へ読み替えない。
+## 2026-10-29 再開検証
+
+再起動後に古いPIDを停止せず、process pathと現在identityを照合し、担当EXEの残存なしを確認してGUIを起動した。正規Computer Useのアプリ選択は返ったが、続く画像取得はギルド画面ではなく `Allow Codex to use guild?` の承認UIだった。承認完了と正しい対象画面を確認できないため通常入力を実施せず停止した。承認UIは操作せず、別の画面取得・入力経路にも切り替えていない。担当プロセスはpath照合で停止し、その後の別読み取りで残存なしを確認、GUI枠を解放した。GUI画面・キーボード/マウス・目視の言語/サイズ検証は未完了。
+
+非GUIは `boundaries` ケースを追加し、通常操作だけで会話前受注拒否、購入残高不足、1/9数量飽和、鞄3種、9個スタック、在庫0、売却→再購入、在庫20で売却拒否、拒否後保存ロード、day4期限切れと報酬拒否を実EXE/Guaで確認した。各拒否で残高・品数・在庫が不変なことをassert。操作とObserveの生証拠は [boundaries-windows.zip](evidence/boundaries-windows.zip)。保存状態はゲーム本来の操作で生成し、注入や専用クリアは使っていない。
+
+承認された空mainの初期commitは `8a51b044d3268257b25b82c16d027b3715c811fb`、treeは空tree `4b825dc642cb6eb9a060e54bf8d69288fbee4904`。既存の実装履歴を保持し、別PR用ブランチに空mainをmergeして共通祖先を設ける。default設定変更、ゲーム実装のmainマージ、自動マージ、正式Approve投稿、Release公開は行わない。
+
+未完了条件は GUI承認と正しい対象画面、画像・人間入力・実画面でのJA/EN/resize。音は仮素材段階で未実装。headlessの成功はこれらの代わりにしない。結果の更新時に未実施を成功へ読み替えない。

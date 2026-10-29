@@ -16,6 +16,7 @@ public sealed class GuildTests
     string evidence = "";
     string save = "";
     string? lastObserve;
+    string[] expectedBugs = [];
     static string Root => FindRoot();
     static string FindRoot()
     {
@@ -34,12 +35,15 @@ public sealed class GuildTests
             AdditionalArguments = args,
             EnvironmentVariables = new Dictionary<string, string> { ["APPDATA"] = Path.Combine(evidence, "appdata") }
         });
-        using var observer = new GuaWebSocketContext("ws://127.0.0.1:8793");
-        var version = observer.GetVersion();
+        var version = host.Context.GetVersion();
         Assert.That(version.CoreVersion, Is.EqualTo("1.1.2"));
         Assert.That(version.GodotPluginVersion, Is.EqualTo("1.1.2"));
         File.WriteAllText(Path.Combine(evidence, "version.json"), JsonSerializer.Serialize(version));
         GuaAssertions.WaitForId(host.Context, "start").ToBeVisible();
+        GuaAssertions.WaitUntil(() => host.Context.GetContextStatus().FrameSequence >= 2,
+            "initial guild observation published", TimeSpan.FromSeconds(3));
+        expectedBugs = bug == null ? Array.Empty<string>() : new[] { bug };
+        AssertBugMode();
     }
     void Close() { host?.Dispose(); host = null; }
     [SetUp] public void Setup()
@@ -74,6 +78,7 @@ public sealed class GuildTests
         // next published UI frame; wait for that frame before choosing again.
         GuaAssertions.WaitUntil(() => host!.Context.GetContextStatus().FrameSequence > completion.FrameSequence,
             "guild UI republished after callback", TimeSpan.FromSeconds(3));
+        if (id is "start" or "reset" or "replay") AssertBugMode();
         TestContext.Progress.WriteLine($"UI click {id}");
     }
     void Clicks(params string[] ids) { foreach (var id in ids) Click(id); }
@@ -93,6 +98,11 @@ public sealed class GuildTests
         return entry["value"]!["value"]!;
     }
     JsonNode State() => JsonNode.Parse(Observe("state").GetValue<string>())!;
+    void AssertBugMode()
+    {
+        var actualBugs = State()["bugs"]!.AsArray().Select(value => value!.GetValue<string>()).ToArray();
+        Assert.That(actualBugs, Is.EqualTo(expectedBugs), "normal and single-bug runs must not enable unrelated defects");
+    }
     int Gold() => State()["gold"]!.AsInt();
     int Count(string item) => State()["bag"]?[item]?.AsInt() ?? 0;
     string Status(int i) => State()["quests"]![i]!["status"]!.GetValue<string>();
@@ -116,6 +126,15 @@ public sealed class GuildTests
         Click("select_" + item); Quantity(count); Clicks("buy", "confirm_trade");
     }
     void Talk() => Clicks("talk", "talk_supplies", "back");
+    void CancelPurchaseConfirmation()
+    {
+        Click("buy");
+        var tree = JsonNode.Parse(host!.Context.GetUiTreeJson())!;
+        Assert.That(tree["screen"]!.GetValue<string>(), Is.EqualTo("confirmation"));
+        Assert.That(tree["nodes"]!.AsArray().Any(node => node!["id"]!.GetValue<string>() == "back"),
+            Is.False, "the confirmation must not publish the background back action");
+        Click("cancel_trade");
+    }
     void Deliver(int index, string item, int count)
     {
         Clicks("choose_item", "bag_" + item, "to_requests");
@@ -149,7 +168,7 @@ public sealed class GuildTests
     }
     [Test] public void EconomicBoundariesAndCancelledConfirmation()
     {
-        Open(); Clicks("start", "shop"); var initial = State(); Clicks("buy", "cancel_trade"); EconomyEqual(initial);
+        Open(); Clicks("start", "shop"); var initial = State(); CancelPurchaseConfirmation(); EconomyEqual(initial);
         Buy("crystal", 6); EconomyEqual(initial); Assert.That(State()["history"]!.AsArray().Last()!["result"]!.GetValue<string>(), Is.EqualTo("gold_low"));
         Quantity(9); Click("qty_plus"); GuaAssertions.GetByText(host!.Context, "数量: 9").ToBeVisible();
         Clicks("buy", "confirm_trade"); EconomyEqual(initial);
@@ -189,7 +208,7 @@ public sealed class GuildTests
     [TestCase(null), TestCase("cancel_charge")]
     public void CancelBugComparison(string? bug)
     {
-        Open(bug); Clicks("start", "shop", "buy", "cancel_trade");
+        Open(bug); Clicks("start", "shop"); CancelPurchaseConfirmation();
         Assert.That(Gold(), Is.EqualTo(bug == null ? 60 : 56), "independent normal cancellation expectation is 60G");
     }
     [TestCase(null), TestCase("double_reward")]

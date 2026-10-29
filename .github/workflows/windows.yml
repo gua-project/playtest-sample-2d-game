@@ -59,6 +59,7 @@ jobs:
             output/guild.exe
             output/*.dll
             output/smoke-results/
+            output/smoke-process.json
             output/smoke-exe*.log
             output/*-error.log
             output/import.log

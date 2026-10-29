@@ -26,6 +26,6 @@ source回帰は開始/一巡/再プレイ、部分保存と報酬後の別source
 
 GUIは正規Computer Useでギルド画面ではなく承認UIが返り、承認完了/正しい対象を確認できず停止しました。通常入力・実画面のJA/EN/resizeは未検証で、今回は承認を再要求していません。音は未実装です。
 
-ゲーム実装の独立レビューは既存の1回で、在庫上限と復元、数量表示幅、操作完了確認の3指摘を修正済み。今回のテスト責務/C#/CI変更は追加の独立監査済みとは主張しません。GitHub正式Approveは未投稿です。
+独立レビューは、初回ゲーム実装1回を保持し、今回の移行差分 `0bbecef..2ec5573` に別枠1回を実施しました。[移行レビュー記録](migration-review.md) のP2指摘2件（購入確認screen/背面back不在、初期bug設定の厳密一致）を修正し、source12件を再検証しました。smokeの起動PIDとLISTEN所有PIDも照合し、限定smoke1件が通過しています。[修正証拠](evidence/migration-review-fixes.zip) を保存。修正・追加照合を別の独立再レビュー済みとは主張しません。GitHub正式Approveは未投稿です。
 
 空mainは明示承認された空tree初期commit `8a51b044` のみ。既存実装ブランチを保持し、PRブランチへ空mainをmergeして共通祖先を設けました。ゲーム実装のmainマージ、自動マージ、default設定変更、Release公開はしていません。GUIとPlaytest受入が残るためDraftを維持します。

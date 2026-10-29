@@ -47,6 +47,6 @@
 
 `OfficialHostOnlyNavigation` はその最小経路を回帰として残す。ゲーム側はcallback中にControlを再構築するため、各clickの公式相関完了後に公式 `WaitUntil` で次のUI frame公開も確認する。明示5秒budgetはテストの待機上限でありPlaytestの探索予算ではない。未完了、タイムアウト、欠落Observeは失敗にする。
 
-既存の独立レビューは前回の1回のみ。今回のテスト責務・C#・CI変更を独立監査済みとは主張しない。再実行結果と未解決の依存API問題はPRに明記する。
+独立レビューは、初回ゲーム実装1回を保持し、今回の移行差分 `0bbecef..2ec5573` へ別枠1回を実施した。[レビュー結果](migration-review.md) のP2検出漏れ2件を修正し、担当が再検証した。修正や追加smoke照合を別の独立再監査済みとは主張しない。
 
-ローカル最終実行は **モデル26項目、source12項目、限定smoke1項目が成功**。source通常実行ではexplicitの配布smokeを実行しない。smokeは別実行でTRXのexecuted=1/passed=1を確認した。初期失敗・比較・最終成功のTRXは [source-migration.zip](evidence/source-migration.zip)、API版とファイルhashは [source-migration-manifest.json](evidence/source-migration-manifest.json)。最終sourceでは追加の未assert観測を「final」として取得せず、最後にassertしたObserve envelopeを `last-observe.json` として元のframe metadataごと保存する。GUIとPlaytest E2Eは依然未実行。
+移行時点 `2ec5573` のローカル実行は **モデル26項目、source12項目、限定smoke1項目が成功**。source通常実行ではexplicitの配布smokeを実行しない。smokeは別実行でTRXのexecuted=1/passed=1を確認した。初期失敗・比較・最終成功のTRXは [source-migration.zip](evidence/source-migration.zip)、API版とファイルhashは [source-migration-manifest.json](evidence/source-migration-manifest.json)。最終sourceでは追加の未assert観測を「final」として取得せず、最後にassertしたObserve envelopeを `last-observe.json` として元のframe metadataごと保存する。GUIとPlaytest E2Eは依然未実行。

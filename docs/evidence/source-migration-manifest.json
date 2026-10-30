@@ -1,0 +1,20 @@
+{
+  "scope": "fixed source regression and limited distribution smoke, not Playtest E2E",
+  "godot": "4.7.stable.official.5b4e0cb0f",
+  "guaTesting": "1.1.2",
+  "guaTestingGodot": "1.1.2",
+  "nugetRepositoryCommit": "b398e531558f38220baf0b606e7c3f33904a87a5",
+  "guaTester": "v3.1",
+  "guaTesterTagCommit": "7bff041a7275363583fdb52a3445ba24601abdab",
+  "modelPassed": 26,
+  "sourcePassed": 12,
+  "limitedSmokePassed": 1,
+  "sourceTrx": "source-results/source-regression-verified.trx",
+  "smokeTrx": "smoke-results/distribution-smoke.trx",
+  "testSourceSha256": "8FDA40E1A8A72D0733D3F0CEEDF55B96187FA123B4A33D2186ABC32C8502D6CF",
+  "testProjectSha256": "866BD7982335D1CE3E0BE2420C73C92C16CB862C4BF61C70FBC8D848AD113B87",
+  "localSmokeExeSha256": "9BEC88C89CC7EB0267A193DCCCABB55A20BE87BDA89F1105E67B77D3B6B88884",
+  "playtestE2E": "unrun",
+  "gui": "unverified, no reapproval requested",
+  "audit": "prior implementation review only; this migration not independently audited"
+}

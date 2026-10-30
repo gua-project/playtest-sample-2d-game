@@ -1,0 +1,15 @@
+{
+  "kind": "handoff-metadata-not-an-executable-scenario",
+  "status": "not-executed-by-playtest",
+  "gameSpecRevision": "guild-v1",
+  "playtestScenarioId": null,
+  "playtestScenarioRevision": null,
+  "environment": {"os": "Windows x64", "godot": "4.7.stable.official.5b4e0cb0f", "gua": "1.1.2", "port": 8793, "guiApproval": "unverified"},
+  "build": {"artifact": "guild-windows", "exe": "guild.exe", "exeSha256": null, "commit": null, "policy": "capture actual target build; historical hash is not current evidence"},
+  "initial": {"day": 1, "gold": 60, "bag": {}, "gameRandomness": "none"},
+  "independentExpectations": {"items": ["herb", "rope", "crystal"], "needs": [3, 2, 2], "rewards": [20, 24, 30], "deadlines": [3, 5, 7], "normalCompletionGold": 82},
+  "bugs": ["cancel_charge", "double_reward", "sort_target"],
+  "exploration": {"seed": 137, "goal": "all three done", "constraints": ["ordinary operations", "no day advancement", "sell shortage then reacquire"], "status": "future-playtest-e2e-unrun"},
+  "playtestOwned": ["launch", "attach", "scenario", "budgets", "cleanup", "Trace", "Recording", "Replay"],
+  "historicalEvidence": ["evidence/headless-windows.zip", "evidence/boundaries-windows.zip", "evidence/manifest.json"]
+}

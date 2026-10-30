@@ -1,0 +1,67 @@
+name: Windows
+on: [push, pull_request]
+env:
+  DOTNET_GENERATE_ASPNET_CERTIFICATE: 'false'
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+jobs:
+  source-regression:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fixed game UI regressions (source scene, not EXE E2E)
+        uses: gua-project/gua-tester/godot@v3.1
+        with:
+          project-path: .
+          test-project: tests/Guild.Regression/Guild.Regression.csproj
+          godot-version: '4.7'
+          gua-repository: gua-project/gua
+          gua-plugin-tag: gua-v1.1.2
+          test-logger: trx;LogFileName=source-regression.trx
+      - name: Verify executed source regression count
+        shell: pwsh
+        run: |
+          [xml]$result=Get-Content tests/Guild.Regression/TestResults/source-regression.trx
+          $counts=$result.TestRun.ResultSummary.Counters
+          if ([int]$counts.executed -ne 12 -or [int]$counts.passed -ne 12) { throw 'Expected 12 executed passing source checks; explicit distribution smoke is separate' }
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guild-source-regression
+          path: |
+            tests/**/TestResults/*.trx
+            output/source-regression/
+  distribution-smoke:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.0
+          use-dotnet: false
+          include-templates: true
+      - shell: pwsh
+        run: ./scripts/bootstrap.ps1
+      - shell: pwsh
+        run: |
+          $engine=(Get-ChildItem "$env:USERPROFILE/godot" -Recurse -Filter '*win64.exe' | Select-Object -First 1).FullName
+          ./scripts/build.ps1 -Godot $engine
+          dotnet restore tests/Guild.Regression/Guild.Regression.csproj
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./scripts/smoke-exe.ps1
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guild-windows
+          path: |
+            output/guild.exe
+            output/*.dll
+            output/smoke-results/
+            output/smoke-process.json
+            output/smoke-exe*.log
+            output/*-error.log
+            output/import.log
+            output/model.log
+            output/export.log

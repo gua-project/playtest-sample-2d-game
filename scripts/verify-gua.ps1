@@ -1,6 +1,7 @@
 # Offline inspection of both actual Godot DLLs. Ports/env cannot grant compiled remote access.
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
+New-Item -ItemType Directory -Force (Join-Path $root '.deps') | Out-Null
 $lock=Get-Content "$PSScriptRoot/gua-dependency.json" -Raw | ConvertFrom-Json
 if (!('GuildArtifactIdentity' -as [type])) {
   Add-Type -TypeDefinition @"

@@ -44,9 +44,9 @@
 
 ## 限定配布smokeの契約
 
-`scripts/smoke-exe.ps1` が通常版EXEをheadlessで1つ起動し、公式 `Gua.Testing` でcore/plugin versionが1.1.2、screenがtitle、開始/ロードがvisibleであることを確認する。明示選択した1テストのTRXがexecuted=1/passed=1であることと、port8793の唯一のLISTEN所有PIDが起動したEXEのPIDと一致することを要求する。EXE hashとPIDを存命中に記録し、終了する。別プロセスの成功を対象buildへ帰属させない。
+`scripts/smoke-exe.ps1` が通常版EXEをheadlessで1つ起動し、公式 `Gua.Testing` でcore/plugin versionが1.2.0、screenがtitle、開始/ロードがvisibleであること、通常の開始ボタン操作でdeskへ遷移することを確認する。明示選択した1テストのTRXがexecuted=1/passed=1であることと、port8793の唯一のLISTEN所有PIDが起動したEXEのPIDと一致することを要求する。EXE hashとPIDを存命中に記録し、終了する。別プロセスの成功を対象buildへ帰属させない。
 
-このsmokeはプレイ・保存復元・探索・GUI・Scenario・Trace/Recording/Replayを検証しない。
+このsmokeは通しプレイ・保存復元・探索・GUI・Scenario・Trace/Recording/Replayを検証しない。
 
 ## 判定上の制約
 

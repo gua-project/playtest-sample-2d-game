@@ -15,8 +15,11 @@ jobs:
           test-project: tests/Guild.Regression/Guild.Regression.csproj
           godot-version: '4.7'
           gua-repository: gua-project/gua
-          gua-plugin-tag: gua-v1.1.2
+          gua-plugin-tag: gua-v1.2.0
           test-logger: trx;LogFileName=source-regression.trx
+      - name: Verify actual addon identity and pinned DLL hashes
+        shell: pwsh
+        run: ./scripts/verify-gua.ps1
       - name: Verify executed source regression count
         shell: pwsh
         run: |
@@ -60,6 +63,7 @@ jobs:
             output/*.dll
             output/smoke-results/
             output/smoke-process.json
+            output/gua-build-manifest.json
             output/smoke-exe*.log
             output/*-error.log
             output/import.log

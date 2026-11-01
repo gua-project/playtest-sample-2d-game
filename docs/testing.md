@@ -7,8 +7,8 @@
 | 経路 | 対象と入口 | 判定範囲 |
 |---|---|---|
 | モデル回帰 | [model_test.gd](../tests/model_test.gd) | 取引・納品・期限・保存の純粋な状態遷移。モデル用fixtureの直接設定を使う。実UI/EXEの証明にはしない |
-| 固定UI回帰 | [GuildTests.cs](../tests/Guild.Regression/GuildTests.cs) の `SourceRegression` | 正式 `Gua.Testing.Godot` / `Gua.Testing` 1.1.2で **source scene** をheadless起動し、通常ボタン操作を検証 |
-| 限定配布smoke | [smoke-exe.ps1](../scripts/smoke-exe.ps1) とexplicitの `DistributionSmoke` | 配布EXEのversion/titleと起動プロセスへの帰属のみ。プレイ、保存、探索は扱わない |
+| 固定UI回帰 | [GuildTests.cs](../tests/Guild.Regression/GuildTests.cs) の `SourceRegression` | 正式 `Gua.Testing.Godot` / `Gua.Testing` 1.2.0で **source scene** をheadless起動し、通常ボタン操作を検証 |
+| 限定配布smoke | [smoke-exe.ps1](../scripts/smoke-exe.ps1) とexplicitの `DistributionSmoke` | 配布EXEのversion/title・開始ボタンから受付への到達と起動プロセスへの帰属のみ。通しプレイ、保存、探索は扱わない |
 | Playtest E2E | [引継ぎ条件](playtest-handoff.md) | 配布EXEのlaunch/attach、Scenario、探索、予算、cleanup、Trace/Recording/Replayの統合。サンプル内に汎用runnerを置かない |
 
 ゲームはGDScript。source回帰のプロセス起動・接続・破棄は `GodotSceneTestHost.Load("res://main.tscn")` が担い、操作は公式locatorの相関付き完了で判定する。Observeは公式 `GuaWebSocketContext.GetObserveSnapshotJson` を読取スコープごとにdisposeし、独自wire clientは使わない。
@@ -35,7 +35,7 @@ port8793を他プロセスと共有せず、同一PCではこれらのテスト�
 
 ## CIと証拠
 
-[Windows workflow](../.github/workflows/windows.yml) の `source-regression` は公式 `gua-project/gua-tester/godot@v3.1`、Godot4.7、addon tag `gua-v1.1.2` を使う。NuGetも1.1.2に固定する。`distribution-smoke` は別jobでビルドと限定smokeを行う。
+[Windows workflow](../.github/workflows/windows.yml) の `source-regression` は公式 `gua-project/gua-tester/godot@v3.1`、Godot4.7、addon tag `gua-v1.2.0` を使う。NuGetも1.2.0に固定する。`distribution-smoke` は別jobでビルドと限定smokeを行う。
 
 判定はTRXの実行件数とassert、各stageの終了コード、エラーログ、配布物の存在を使う。sourceは12件、限定smokeは1件の実行・合格を要求する。これはsuiteの構成に対する条件であり、特定日時の成功報告ではない。
 
@@ -48,3 +48,9 @@ sourceの `version.json`、`final-ui.json`、`last-observe.json` と失敗診断
 - Godotの初回import直後の終了でaccess violationの再現記録がある。`build.ps1` は180フレーム・最大60fpsの初期化と明示的なプロセス終了待ちを使い、終了コードとstderrを確認する。この実行手順は原因修正を意味しない。
 - GUI画面、キーボード/マウス、実画面JA/EN/resizeは未検証。headlessのsemantic到達やbounds確認で代替しない。音は未実装、他ハードウェア互換性やオンライン同期も対象外。
 - Playtestの接続条件・独立期待値・未実行範囲は[引継ぎ文書](playtest-handoff.md)に定める。
+
+## 実配布物の用途とidentity
+
+正式公開SDKのDevelopment/remote ONを使用し、source既定のShipping/remote OFFを環境変数・portで再有効化しない。権限上限はDebugであり、Player固定版の証拠にはしない。`scripts/gua-dependency.json` に公開asset SHA256、Windows Debug/Release DLL hash、Gua source/build IDを固定する。`verify-gua.ps1` は実DLLの公式build-infoをオフラインで読み、用途・remote・上限・configuration・transport・source/build IDとhashを照合する。DLL名だけでは合格にしない。
+
+ビルドmanifest `output/gua-build-manifest.json` はゲームcommitとGua identity、EXE/DLL hashを記録する。未commit差分があるローカルbuildはcommitだけで内容を断定しない。配布smokeは実EXEのbuild-infoログ・versionのbuild ID・通常開始操作・LISTEN所有PIDも照合する。sourceと配布EXEは別の結果として扱う。GUI物理入力の代替にはしない。

@@ -1,6 +1,6 @@
 # 小さな冒険者ギルド
 
-[仕様 issue #1](https://github.com/gua-project/playtest-sample-2d-game/issues/1) の非リアルタイム 2D サンプル。Windows x64、Godot **4.7.stable.official.5b4e0cb0f**、正式 **Gua 1.1.2** を使用する。素材は文字・標準 UI による仮素材。音声は未実装。
+[仕様 issue #1](https://github.com/gua-project/playtest-sample-2d-game/issues/1) の非リアルタイム 2D サンプル。Windows x64、Godot **4.7.stable.official.5b4e0cb0f**、正式 **Gua 1.2.0** を使用する。素材は文字・標準 UI による仮素材。音声は未実装。
 
 ## 起動・ビルド・配布
 
@@ -12,7 +12,9 @@ Godot 4.7 stable と同版 Windows export templates を用意する。PowerShell
 ./output/guild.exe
 ```
 
-`bootstrap.ps1` は正式 release `gua-v1.1.2` の addon ZIP の SHA256 `19f89058ca60e48c74a7327da31c0e011b4c053acfda8e5b8e2e2b1fc90ae8c4` を照合して checkout 内だけに展開する。Git に DLL やビルド成果物は含めない。配布時は `output/guild.exe` と export が配置した DLL を同じ構成で ZIP にまとめる。EXE は PCK 内蔵で、署名はない。CI artifact `guild-windows` にEXE/DLLと検証ログを保存する。
+`bootstrap.ps1` は正式 release `gua-v1.2.0` の addon ZIP の SHA256 `effcad4cfc6083528bee4e469e171047cd9d2d49547a09d16be04845fcda7873` を照合して checkout 内だけに展開する。Git に DLL やビルド成果物は含めない。配布時は `output/guild.exe` と export が配置した DLL を同じ構成で ZIP にまとめる。EXE は PCK 内蔵で、署名はない。CI artifact `guild-windows` にEXE/DLLと検証ログを保存する。
+
+公開テストSDKは `development` 用途・remote ON・権限上限Debugの明示構成です。通常出荷用Shipping/OFFやPlayer固定のAI-player版とは異なります。DLLの同梱やRelease最適化だけでremote有効とは判断しません。`scripts/gua-dependency.json` のasset/DLL hashとsource/build IDを、`verify-gua.ps1` が実DLLのオフラインbuild-infoと照合します。ビルドは `output/gua-build-manifest.json` に用途・identity・EXE/DLL hashを保存します。
 
 ## 遊び方
 
@@ -45,7 +47,7 @@ $env:GUA_BRIDGE_PORT='8793'
 
 ## テストと判定範囲
 
-[テストの責務・実行方法](docs/testing.md) と [テスト契約](docs/test-matrix.md) を参照してください。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.1.2** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.1.2` に固定しています。
+[テストの責務・実行方法](docs/testing.md) と [テスト契約](docs/test-matrix.md) を参照してください。固定UI回帰は正式NuGet `Gua.Testing.Godot` / `Gua.Testing` **1.2.0** を使い、GDScriptの **source scene** を起動します。CIは公式 `gua-project/gua-tester/godot@v3.1` を使い、addonのtagも `gua-v1.2.0` に固定しています。
 
 ```powershell
 $env:GODOT_EXECUTABLE='C:/path/to/Godot_v4.7-stable_win64.exe'
@@ -55,7 +57,7 @@ dotnet test tests/Guild.Regression/Guild.Regression.csproj --filter TestCategory
 ./scripts/smoke-exe.ps1
 ```
 
-最後のsmokeは既にビルドされたEXEの **公式versionとタイトルのUI存在だけ** を確認し、接続先の所有PIDと起動PIDを照合してから1プロセスを終了します。source回帰と配布smokeの結果は分けて扱います。
+最後のsmokeは既にビルドされたEXEの **公式version・タイトルUI・通常の開始操作だけ** を確認し、接続先の所有PIDと起動PIDを照合してから1プロセスを終了します。source回帰と配布smokeの結果は分けて扱います。
 
 配布EXEのlaunch/attach、探索、Scenario、予算、cleanup、Trace/Recording/Replayの統合は **Gua Playtest** 側の責務です。サンプルに第二のE2E実行基盤は設けません。接続条件・期待値・未実行範囲は[Playtest引継ぎ](docs/playtest-handoff.md)を参照してください。[引継ぎJSON](docs/playtest-handoff.json)は未実行のメタデータであり、実行可能Scenario形式や成功結果ではありません。
 

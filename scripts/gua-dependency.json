@@ -1,0 +1,14 @@
+{
+  "version": "1.2.0",
+  "sourceCommit": "2e12fb3cfdf822418f349515027d6f620c5ee63b",
+  "tag": "gua-v1.2.0",
+  "asset": "gua-godot-addon-v1.2.0.zip",
+  "sha256": "effcad4cfc6083528bee4e469e171047cd9d2d49547a09d16be04845fcda7873",
+  "flavor": "development",
+  "remoteEnabled": true,
+  "remotePermissionCeiling": "debug",
+  "windowsDllSha256": {
+    "debug": "dbf23cf68206b7c918d4790ba606ce62048e13e3438e306e4dccd4e117e5872e",
+    "release": "19a2bdd6cc6f3533ada6c5af02ba4b3dfcb95536a451216fb99d9e39ec1c6d0a"
+  }
+}

@@ -36,8 +36,9 @@ public sealed class GuildTests
             EnvironmentVariables = new Dictionary<string, string> { ["APPDATA"] = Path.Combine(evidence, "appdata") }
         });
         var version = host.Context.GetVersion();
-        Assert.That(version.CoreVersion, Is.EqualTo("1.1.2"));
-        Assert.That(version.GodotPluginVersion, Is.EqualTo("1.1.2"));
+        Assert.That(version.CoreVersion, Is.EqualTo("1.2.0"));
+        Assert.That(version.GodotPluginVersion, Is.EqualTo("1.2.0"));
+        Assert.That(version.BuildId, Is.EqualTo("2e12fb3cfdf822418f349515027d6f620c5ee63b"));
         File.WriteAllText(Path.Combine(evidence, "version.json"), JsonSerializer.Serialize(version));
         GuaAssertions.WaitForId(host.Context, "start").ToBeVisible();
         GuaAssertions.WaitUntil(() => host.Context.GetContextStatus().FrameSequence >= 2,
@@ -230,17 +231,20 @@ public sealed class GuildTests
 [TestFixture, Category("DistributionSmoke"), NonParallelizable, Explicit("Only scripts/smoke-exe.ps1 starts the packaged EXE for this limited smoke")]
 public sealed class DistributionSmoke
 {
-    [Test] public void PackagedTitleAndOfficialVersionOnly()
+    [Test] public void PackagedTitleVersionAndStart()
     {
         using var context = new GuaWebSocketContext("ws://127.0.0.1:8793");
         context.WaitUntilAvailable(TimeSpan.FromSeconds(10));
         var version = context.GetVersion();
-        Assert.That(version.CoreVersion, Is.EqualTo("1.1.2"));
-        Assert.That(version.GodotPluginVersion, Is.EqualTo("1.1.2"));
+        Assert.That(version.CoreVersion, Is.EqualTo("1.2.0"));
+        Assert.That(version.GodotPluginVersion, Is.EqualTo("1.2.0"));
         GuaAssertions.GetById(context, "start").ToBeVisible();
         GuaAssertions.GetById(context, "load").ToBeVisible();
         Assert.That(context.GetRemoteTree().Screen, Is.EqualTo("title"));
-        TestContext.Progress.WriteLine("LIMITED EXE SMOKE: version/title only; no playthrough, scenario, trace or replay");
+        Assert.That(version.BuildId, Is.EqualTo("2e12fb3cfdf822418f349515027d6f620c5ee63b"));
+        GuaAssertions.Query(context).ById("start").Click(timeout: TimeSpan.FromSeconds(5));
+        GuaAssertions.WaitUntil(() => context.GetRemoteTree().Screen == "desk", "ordinary start reached guild desk", TimeSpan.FromSeconds(3));
+        TestContext.Progress.WriteLine("LIMITED EXE SMOKE: version/title/ordinary start only; no playthrough, scenario, trace or replay");
     }
 }
 

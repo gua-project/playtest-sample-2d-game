@@ -4,7 +4,9 @@
 
 ## 接続・環境・対象build
 
-Windows x64、Godot `4.7.stable.official.5b4e0cb0f`、正式Gua `1.1.2` を使用する。配布物はCI artifact `guild-windows` の `guild.exe` と同梱DLL。CI artifactには保持期限があり、恒久保存された証拠とは扱わない。実行対象のEXE SHA256とcommitを取得し、Scenario ID/revision・環境・独立期待値と結び付ける。過去のbuild hashは現在の対象の証拠ではない。
+Windows x64、Godot `4.7.stable.official.5b4e0cb0f`、正式Gua `1.2.0` を使用する。配布物はCI artifact `guild-windows` の `guild.exe` と同梱DLL。CI artifactには保持期限があり、恒久保存された証拠とは扱わない。実行対象のEXE SHA256とcommitを取得し、Scenario ID/revision・環境・独立期待値と結び付ける。過去のbuild hashは現在の対象の証拠ではない。
+
+使用SDKはDevelopment/remote ON・権限上限Debug（Player固定版ではない）。Gua source/build IDは `2e12fb3cfdf822418f349515027d6f620c5ee63b`。実対象の `gua-build-manifest.json` とEXE起動ログの `GUILD_BUILD_INFO`、EXE/DLL hashを照合する。通常出荷用Shipping/OFFはport/envでremote化できない。
 
 bridgeは `ws://127.0.0.1:8793`（`GUA_BRIDGE_PORT`で変更可）。別サンプルとportを共有しない。保存先は `%APPDATA%/GuaSampleGuild2D/guild-save.json`、検証時は `--save-path=C:/absolute/path/save.json` で固有のsave/outputを用意する。通常版はbug引数なし、個別比較は `--bug=cancel_charge` / `--bug=double_reward` / `--bug=sort_target` のいずれか1つ。新規開始・リセット・再プレイはフラグを引き継ぎ、ロードは保存時のフラグを復元するため、初期条件と有効bug配列を照合する。
 

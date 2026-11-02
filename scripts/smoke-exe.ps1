@@ -1,5 +1,5 @@
 param([string]$Dotnet='dotnet')
-# One packaged EXE: official version/title only. Playtest owns E2E orchestration.
+# One packaged EXE: official version/title/ordinary start only. Playtest owns E2E orchestration.
 $ErrorActionPreference='Stop'
 Set-Location (Split-Path $PSScriptRoot -Parent)
 $priorAppData=$env:APPDATA
@@ -15,12 +15,18 @@ try {
     if ($LASTEXITCODE) { throw 'Limited distribution smoke failed' }
     [xml]$result=Get-Content output/smoke-results/distribution-smoke.trx
     $counts=$result.TestRun.ResultSummary.Counters
-    if ([int]$counts.executed -ne 1 -or [int]$counts.passed -ne 1) { throw 'Smoke requires exactly one executed passing title/version check' }
+    if ([int]$counts.executed -ne 1 -or [int]$counts.passed -ne 1) { throw 'Smoke requires exactly one executed passing title/version/start check' }
     $listeners=@(Get-NetTCPConnection -LocalPort 8793 -State Listen -ErrorAction SilentlyContinue)
     if ($listeners.Count -ne 1 -or $listeners[0].OwningProcess -ne $process.Id) {
       throw 'Smoke bridge is not owned by the launched EXE; title/version results cannot be attributed to this build'
     }
-    [ordered]@{scope='version/title only';launchedPid=$process.Id;bridgePid=$listeners[0].OwningProcess;port=8793;exeSha256=(Get-FileHash output/guild.exe).Hash;trx='smoke-results/distribution-smoke.trx'} |
+    $line=Get-Content output/smoke-exe.log | Where-Object { $_ -like 'GUILD_BUILD_INFO *' } | Select-Object -First 1
+    if (!$line) { throw 'Packaged runtime build-info missing' }
+    $actual=$line.Substring('GUILD_BUILD_INFO '.Length) | ConvertFrom-Json
+    $lock=Get-Content scripts/gua-dependency.json -Raw | ConvertFrom-Json
+    if ((Get-FileHash output/gua_godot.windows.release.x86_64.dll).Hash -ine $lock.windowsDllSha256.release) { throw 'Packaged DLL hash mismatch' }
+    if ($actual.flavor -ne $lock.flavor -or $actual.remoteEnabled -ne $true -or $actual.remotePermissionCeiling -ne $lock.remotePermissionCeiling -or $actual.sourceCommit -ne $lock.sourceCommit -or $actual.buildId -ne $lock.sourceCommit -or $actual.configuration -ne 'Release') { throw 'Packaged runtime identity mismatch' }
+    [ordered]@{guaBuildInfo=$actual;scope='version/title/ordinary start only';launchedPid=$process.Id;bridgePid=$listeners[0].OwningProcess;port=8793;exeSha256=(Get-FileHash output/guild.exe).Hash;trx='smoke-results/distribution-smoke.trx'} |
       ConvertTo-Json | Set-Content -Encoding utf8 output/smoke-process.json
   } finally {
     if (!$process.HasExited) { Stop-Process -Id $process.Id; $process.WaitForExit(10000) | Out-Null }

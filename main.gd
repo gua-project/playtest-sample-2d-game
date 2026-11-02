@@ -35,6 +35,7 @@ func _ready() -> void:
 	theme=theme_new
 	render()
 	gua.attach(self)
+	print("GUILD_BUILD_INFO ", JSON.stringify(gua.get_build_info()))
 	gua.update(screen)
 	observe_owner=gua.create_observe_owner(1,"root",self)
 	observe_owner.observe("state",func(): return {"type":"string","value":JSON.stringify(game.snapshot())})
@@ -42,7 +43,7 @@ func _ready() -> void:
 	var port = int(OS.get_environment("GUA_BRIDGE_PORT"))
 	if port==0: port=8793
 	if not gua.start_inspector_bridge(port): push_error("Gua bridge failed")
-	print("GUILD Gua 1.1.2 bridge: ",gua.inspector_bridge_url()," bugs=",game.bugs)
+	print("GUILD Gua 1.2.0 bridge: ",gua.inspector_bridge_url()," bugs=",game.bugs)
 
 func _process(_delta: float) -> void: gua.update(screen)
 func _exit_tree() -> void:
